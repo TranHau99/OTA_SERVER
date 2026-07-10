@@ -5,7 +5,7 @@ module.exports = {
     //==========================
     mqtt: {
 
-        host: "mqtt://broker.hivemq.com",
+        host: "mqtt://broker.hivemq.com:1883",
 
         port: 1883,
 
