@@ -4,7 +4,11 @@ const path = require("path");
 const fs = require("fs");
 
 const config = require("./config");
-const { publishOTA } = require("./mqtt");
+const {
+    publishOTA,
+    getOTAStatus
+} = require("./mqtt");
+
 console.log("server.js loaded mqtt.js");
 const app = express();
 
@@ -55,7 +59,31 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 
-// API upload firmware và gửi MQTT
+app.get("/api/ota-status/:machineId", (req, res) => {
+    const machineId =
+        String(req.params.machineId || "")
+            .trim()
+            .toUpperCase();
+
+    const status = getOTAStatus(machineId);
+
+    if (!status)
+    {
+        return res.json({
+            success: true,
+            found: false,
+            machineId: machineId,
+            status: "waiting",
+            message: "Chưa nhận được trạng thái từ thiết bị"
+        });
+    }
+
+    return res.json({
+        success: true,
+        found: true,
+        ...status
+    });
+});
 // API upload firmware và gửi MQTT
 app.post("/api/update", upload.single("firmware"), async (req, res) => {
     let savedFilePath = "";
