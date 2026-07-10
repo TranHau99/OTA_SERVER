@@ -25,12 +25,6 @@ module.exports = {
     },
 
     //==========================
-    // Firmware
-    //==========================
-    firmware: {
-
-        filename: "firmware.bin"
-
-    }
+   
 
 };
