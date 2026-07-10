@@ -221,11 +221,12 @@
     }
 
     showMessage(
-        data.message +
-        "\n\nFirmware URL:\n" +
-        data.firmwareUrl,
-        "success"
-    );
+    data.message +
+    "\n\nĐang chờ ESP32 cập nhật...",
+    "info"
+);
+
+await watchOTAStatus(data.machineId);
 }
 catch (error)
 {
@@ -240,6 +241,102 @@ catch (error)
             button.textContent = "UPDATE FIRMWARE";
         }
     });
+    async function watchOTAStatus(machineId)
+{
+    const maxChecks = 90;
+
+    for (let check = 0; check < maxChecks; check++)
+    {
+        await new Promise(resolve =>
+            setTimeout(resolve, 2000)
+        );
+
+        try
+        {
+            const response = await fetch(
+                "/api/ota-status/" +
+                encodeURIComponent(machineId)
+            );
+
+            const data = await response.json();
+
+            if (!data.found)
+            {
+                showMessage(
+                    "Đã gửi firmware.\n" +
+                    "Đang chờ ESP32 phản hồi...",
+                    "info"
+                );
+
+                continue;
+            }
+
+            if (data.status === "command_sent")
+            {
+                showMessage(
+                    "Đã gửi lệnh OTA.\n" +
+                    "Đang chờ ESP32 nhận lệnh...",
+                    "info"
+                );
+            }
+            else if (data.status === "updating")
+            {
+                showMessage(
+                    "ESP32 đang cập nhật firmware " +
+                    data.version +
+                    "...\n\n" +
+                    data.message,
+                    "info"
+                );
+            }
+            else if (data.status === "success")
+            {
+                showMessage(
+                    "CẬP NHẬT THÀNH CÔNG\n\n" +
+                    "Machine: " + machineId +
+                    "\nVersion: " + data.version +
+                    "\n" + data.message,
+                    "success"
+                );
+
+                return;
+            }
+            else if (
+                data.status === "failed" ||
+                data.status === "rejected"
+            )
+            {
+                showMessage(
+                    "CẬP NHẬT THẤT BẠI\n\n" +
+                    "Machine: " + machineId +
+                    "\nVersion: " + data.version +
+                    "\n" + data.message,
+                    "error"
+                );
+
+                return;
+            }
+            else if (data.status === "online")
+            {
+                showMessage(
+                    "Thiết bị đang online.\n" +
+                    "Firmware hiện tại: " +
+                    data.version,
+                    "info"
+                );
+            }
+        }
+        catch (error)
+        {
+            console.error(error);
+        }
+    }
+
+    showMessage(
+        "Hết thời gian chờ ESP32 xác nhận cập nhật.",
+        "error"
+    );
+}
 </script>
 
 </body>
