@@ -2,88 +2,229 @@
 <html lang="vi">
 
 <head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta charset="UTF-8">
+    <title>Wash Machine OTA</title>
 
-<title>ESP32 OTA</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f3f5f7;
+        }
 
-body{
+        .card {
+            width: 100%;
+            max-width: 520px;
+            padding: 28px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
 
-    font-family:Arial;
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            font-size: 26px;
+        }
 
-    margin:40px;
+        .subtitle {
+            margin-bottom: 24px;
+            text-align: center;
+            color: #666;
+        }
 
-}
+        label {
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
 
-.card{
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bbb;
+            border-radius: 7px;
+            font-size: 16px;
+        }
 
-    width:450px;
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 14px;
+            border: none;
+            border-radius: 7px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-    padding:20px;
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
-    border:1px solid #ccc;
+        #result {
+            display: none;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 7px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
 
-    border-radius:10px;
+        .success {
+            display: block !important;
+            background: #e9f7ed;
+            border: 1px solid #8ac99a;
+        }
 
-}
+        .error {
+            display: block !important;
+            background: #fdecec;
+            border: 1px solid #e3a0a0;
+        }
 
-input{
-
-    width:100%;
-
-    padding:8px;
-
-    margin-top:5px;
-
-    margin-bottom:15px;
-
-}
-
-button{
-
-    width:100%;
-
-    padding:12px;
-
-    font-size:18px;
-
-    cursor:pointer;
-
-}
-
-</style>
-
+        .info {
+            display: block !important;
+            background: #eef4ff;
+            border: 1px solid #9bb7e8;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="card">
+    <h1>ESP32 OTA SERVER</h1>
 
-<h2>ESP32 OTA SERVER</h2>
+    <div class="subtitle">
+        Cập nhật firmware từ xa qua Internet
+    </div>
 
-<label>Machine ID</label>
+    <form id="otaForm">
+        <label for="machineId">Machine ID</label>
 
-<input
-type="text"
-id="machine"
-value="WASH001">
+        <input
+            type="text"
+            id="machineId"
+            name="machineId"
+            value="WASH001"
+            required
+        >
 
-<label>Firmware</label>
+        <label for="version">Phiên bản firmware</label>
 
-<input
-type="file"
-id="firmware">
+        <input
+            type="text"
+            id="version"
+            name="version"
+            placeholder="Ví dụ: 1.0.1"
+        >
 
-<button>
+        <label for="firmware">Firmware (.bin)</label>
 
-UPDATE
+        <input
+            type="file"
+            id="firmware"
+            name="firmware"
+            accept=".bin"
+            required
+        >
 
-</button>
+        <button type="submit" id="updateButton">
+            UPDATE FIRMWARE
+        </button>
+    </form>
 
+    <div id="result"></div>
 </div>
 
-</body>
+<script>
+    const form = document.getElementById("otaForm");
+    const button = document.getElementById("updateButton");
+    const result = document.getElementById("result");
 
+    function showMessage(message, type)
+    {
+        result.className = type;
+        result.textContent = message;
+    }
+
+    form.addEventListener("submit", async function (event)
+    {
+        event.preventDefault();
+
+        const firmwareInput =
+            document.getElementById("firmware");
+
+        if (!firmwareInput.files.length)
+        {
+            showMessage("Hãy chọn file firmware.bin", "error");
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        button.disabled = true;
+        button.textContent = "ĐANG UPLOAD...";
+
+        showMessage(
+            "Đang upload firmware và gửi lệnh OTA...",
+            "info"
+        );
+
+        try
+        {
+            const response = await fetch("/api/update", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success)
+            {
+                throw new Error(
+                    data.message || "Update thất bại"
+                );
+            }
+
+            showMessage(
+                data.message +
+                "\n\nFirmware URL:\n" +
+                data.firmwareUrl,
+                "success"
+            );
+        }
+        catch (error)
+        {
+            showMessage(
+                "Lỗi: " + error.message,
+                "error"
+            );
+        }
+        finally
+        {
+            button.disabled = false;
+            button.textContent = "UPDATE FIRMWARE";
+        }
+    });
+</script>
+
+</body>
 </html>
