@@ -17,11 +17,13 @@ app.get("/", (req, res) => {
 });
 
 // Khởi động Web Server
-app.listen(config.web.port, () => {
+const PORT = process.env.PORT || config.web.port;
+
+app.listen(PORT, () => {
 
     console.log("==================================");
-    console.log(" OTA SERVER START");
-    console.log(" http://localhost:" + config.web.port);
+    console.log("OTA SERVER START");
+    console.log("Port:", PORT);
     console.log("==================================");
 
 });
