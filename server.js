@@ -24,30 +24,17 @@ app.use(express.static(PUBLIC_DIR));
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 // Cấu hình lưu file firmware
-const storage = multer.diskStorage({
-    destination: function (req, file, callback)
-    {
-        callback(null, UPLOAD_DIR);
-    },
-
-    filename: function (req, file, callback)
-    {
-        // Tạm thời luôn lưu thành firmware.bin
-        callback(null, config.firmware.filename);
-    }
-});
-
 const upload = multer({
-    storage: storage,
+    storage: multer.memoryStorage(),
 
     limits: {
-        // Cho phép tối đa 4 MB
         fileSize: 4 * 1024 * 1024
     },
 
     fileFilter: function (req, file, callback)
     {
-        const extension = path.extname(file.originalname).toLowerCase();
+        const extension =
+            path.extname(file.originalname).toLowerCase();
 
         if (extension !== ".bin")
         {
@@ -59,21 +46,32 @@ const upload = multer({
     }
 });
 
+///2
+
+
+
 // Trang chủ
 app.get("/", (req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 
 // API upload firmware và gửi MQTT
+// API upload firmware và gửi MQTT
 app.post("/api/update", upload.single("firmware"), async (req, res) => {
+    let savedFilePath = "";
+
     try
     {
         const machineId = String(req.body.machineId || "")
             .trim()
             .toUpperCase();
 
-        const version = String(req.body.version || "").trim();
+        const version = String(req.body.version || "")
+            .trim();
 
+        // ==============================
+        // Kiểm tra Machine ID
+        // ==============================
         if (!machineId)
         {
             return res.status(400).json({
@@ -82,7 +80,6 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
             });
         }
 
-        // Chỉ chấp nhận chữ, số, dấu gạch dưới và gạch ngang
         if (!/^[A-Z0-9_-]+$/.test(machineId))
         {
             return res.status(400).json({
@@ -91,6 +88,20 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
             });
         }
 
+        // ==============================
+        // Kiểm tra Version
+        // ==============================
+        if (!version)
+        {
+            return res.status(400).json({
+                success: false,
+                message: "Phiên bản firmware không được để trống"
+            });
+        }
+
+        // ==============================
+        // Kiểm tra file
+        // ==============================
         if (!req.file)
         {
             return res.status(400).json({
@@ -99,30 +110,85 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
             });
         }
 
-        // Render cung cấp hostname thật trong request
-        const protocol = req.get("x-forwarded-proto") || req.protocol;
+        // Làm sạch chuỗi version để dùng trong tên file
+        const safeVersion =
+            version.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+        // ==============================
+        // Tạo tên file riêng
+        // ==============================
+        const timestamp = Date.now();
+
+        const firmwareFilename =
+            `${machineId}_${safeVersion}_${timestamp}.bin`;
+
+        savedFilePath =
+            path.join(UPLOAD_DIR, firmwareFilename);
+
+        // Vì upload đang dùng memoryStorage,
+        // phải tự ghi buffer xuống file
+        fs.writeFileSync(
+            savedFilePath,
+            req.file.buffer
+        );
+
+        console.log("==================================");
+        console.log("Firmware saved");
+        console.log("Machine:", machineId);
+        console.log("Version:", version);
+        console.log("Filename:", firmwareFilename);
+        console.log("Size:", req.file.size, "bytes");
+        console.log("==================================");
+
+        // ==============================
+        // Tạo URL tải firmware
+        // ==============================
+        const protocol =
+            req.get("x-forwarded-proto") ||
+            req.protocol;
+
         const host = req.get("host");
 
         const firmwareUrl =
-            `${protocol}://${host}/uploads/${config.firmware.filename}`;
+            `${protocol}://${host}/uploads/${firmwareFilename}`;
 
-        await publishOTA(machineId, firmwareUrl, version);
+        // ==============================
+        // Gửi lệnh MQTT
+        // ==============================
+        await publishOTA(
+            machineId,
+            firmwareUrl,
+            version
+        );
 
         return res.json({
             success: true,
             message: `Đã gửi lệnh OTA đến ${machineId}`,
             machineId: machineId,
-            firmwareUrl: firmwareUrl,
-            version: version
+            version: version,
+            filename: firmwareFilename,
+            firmwareUrl: firmwareUrl
         });
     }
     catch (error)
     {
         console.error("Update error:", error);
+        console.error(error.stack);
+
+        // Nếu gửi MQTT lỗi thì xóa file vừa lưu
+        if (
+            savedFilePath &&
+            fs.existsSync(savedFilePath)
+        )
+        {
+            fs.unlinkSync(savedFilePath);
+        }
 
         return res.status(500).json({
             success: false,
-            message: error.message || "Không thể gửi lệnh OTA"
+            message:
+                error.message ||
+                "Không thể gửi lệnh OTA"
         });
     }
 });
@@ -141,7 +207,9 @@ app.use((error, req, res, next) => {
 
     return res.status(400).json({
         success: false,
-        message: error.message || "Có lỗi xảy ra"
+        message:
+            error.message ||
+            "Có lỗi xảy ra"
     });
 });
 

@@ -189,35 +189,51 @@
         );
 
         try
-        {
-            const response = await fetch("/api/update", {
-                method: "POST",
-                body: formData
-            });
+{
+    const response = await fetch("/api/update", {
+        method: "POST",
+        body: formData
+    });
 
-            const data = await response.json();
+    const responseText = await response.text();
 
-            if (!response.ok || !data.success)
-            {
-                throw new Error(
-                    data.message || "Update thất bại"
-                );
-            }
+    let data;
 
-            showMessage(
-                data.message +
-                "\n\nFirmware URL:\n" +
-                data.firmwareUrl,
-                "success"
-            );
-        }
-        catch (error)
-        {
-            showMessage(
-                "Lỗi: " + error.message,
-                "error"
-            );
-        }
+    try
+    {
+        data = JSON.parse(responseText);
+    }
+    catch
+    {
+        throw new Error(
+            "Server trả về HTML thay vì JSON.\n" +
+            "HTTP status: " + response.status +
+            "\n" +
+            responseText.substring(0, 300)
+        );
+    }
+
+    if (!response.ok || !data.success)
+    {
+        throw new Error(
+            data.message || "Update thất bại"
+        );
+    }
+
+    showMessage(
+        data.message +
+        "\n\nFirmware URL:\n" +
+        data.firmwareUrl,
+        "success"
+    );
+}
+catch (error)
+{
+    showMessage(
+        "Lỗi: " + error.message,
+        "error"
+    );
+}
         finally
         {
             button.disabled = false;
