@@ -3,10 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Wash Machine OTA</title>
 
@@ -109,235 +106,203 @@
 
 <body>
 
-<div class="card">
-    <h1>ESP32 OTA SERVER</h1>
+    <div class="card">
+        <h1>ESP32 OTA SERVER</h1>
 
-    <div class="subtitle">
-        Cập nhật firmware từ xa qua Internet
+        <div class="subtitle">
+            Cập nhật firmware từ xa qua Internet
+        </div>
+
+        <form id="otaForm">
+            <label for="machineId">Machine ID</label>
+
+            <input type="text" id="machineId" name="machineId" value="WASH001" required>
+
+            <label for="version">Phiên bản firmware</label>
+
+            <input type="text" id="version" name="version" placeholder="Ví dụ: 1.0.1">
+
+            <label for="firmware">Firmware (.bin)</label>
+
+            <input type="file" id="firmware" name="firmware" accept=".bin" required>
+
+            <button type="submit" id="updateButton">
+                UPDATE FIRMWARE
+            </button>
+        </form>
+
+        <div id="result"></div>
     </div>
 
-    <form id="otaForm">
-        <label for="machineId">Machine ID</label>
+    <script>
+        const form = document.getElementById("otaForm");
+        const button = document.getElementById("updateButton");
+        const result = document.getElementById("result");
 
-        <input
-            type="text"
-            id="machineId"
-            name="machineId"
-            value="WASH001"
-            required
-        >
-
-        <label for="version">Phiên bản firmware</label>
-
-        <input
-            type="text"
-            id="version"
-            name="version"
-            placeholder="Ví dụ: 1.0.1"
-        >
-
-        <label for="firmware">Firmware (.bin)</label>
-
-        <input
-            type="file"
-            id="firmware"
-            name="firmware"
-            accept=".bin"
-            required
-        >
-
-        <button type="submit" id="updateButton">
-            UPDATE FIRMWARE
-        </button>
-    </form>
-
-    <div id="result"></div>
-</div>
-
-<script>
-    const form = document.getElementById("otaForm");
-    const button = document.getElementById("updateButton");
-    const result = document.getElementById("result");
-
-    function showMessage(message, type)
-    {
-        result.className = type;
-        result.textContent = message;
-    }
-
-    form.addEventListener("submit", async function (event)
-    {
-        event.preventDefault();
-
-        const firmwareInput =
-            document.getElementById("firmware");
-
-        if (!firmwareInput.files.length)
-        {
-            showMessage("Hãy chọn file firmware.bin", "error");
-            return;
+        function showMessage(message, type) {
+            result.className = type;
+            result.textContent = message;
         }
 
-        const formData = new FormData(form);
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
 
-        button.disabled = true;
-        button.textContent = "ĐANG UPLOAD...";
+            const firmwareInput =
+                document.getElementById("firmware");
 
-        showMessage(
-            "Đang upload firmware và gửi lệnh OTA...",
-            "info"
-        );
+            if (!firmwareInput.files.length) {
+                showMessage("Hãy chọn file firmware.bin", "error");
+                return;
+            }
 
-        try
-{
-    const response = await fetch("/api/update", {
-        method: "POST",
-        body: formData
-    });
+            const formData = new FormData(form);
 
-    const responseText = await response.text();
+            button.disabled = true;
+            button.textContent = "ĐANG UPLOAD...";
 
-    let data;
-
-    try
-    {
-        data = JSON.parse(responseText);
-    }
-    catch
-    {
-        throw new Error(
-            "Server trả về HTML thay vì JSON.\n" +
-            "HTTP status: " + response.status +
-            "\n" +
-            responseText.substring(0, 300)
-        );
-    }
-
-    if (!response.ok || !data.success)
-    {
-        throw new Error(
-            data.message || "Update thất bại"
-        );
-    }
-
-    showMessage(
-    data.message +
-    "\n\nĐang chờ ESP32 cập nhật...",
-    "info"
-);
-
-await watchOTAStatus(data.machineId);
-}
-catch (error)
-{
-    showMessage(
-        "Lỗi: " + error.message,
-        "error"
-    );
-}
-        finally
-        {
-            button.disabled = false;
-            button.textContent = "UPDATE FIRMWARE";
-        }
-    });
-    async function watchOTAStatus(machineId)
-{
-    const maxChecks = 90;
-
-    for (let check = 0; check < maxChecks; check++)
-    {
-        await new Promise(resolve =>
-            setTimeout(resolve, 2000)
-        );
-
-        try
-        {
-            const response = await fetch(
-                "/api/ota-status/" +
-                encodeURIComponent(machineId)
+            showMessage(
+                "Đang upload firmware và gửi lệnh OTA...",
+                "info"
             );
 
-            const data = await response.json();
+            try {
+                const response = await fetch("/api/update", {
+                    method: "POST",
+                    body: formData
+                });
 
-            if (!data.found)
-            {
+                const responseText = await response.text();
+
+                let data;
+
+                try {
+                    data = JSON.parse(responseText);
+                }
+                catch {
+                    throw new Error(
+                        "Server trả về HTML thay vì JSON.\n" +
+                        "HTTP status: " + response.status +
+                        "\n" +
+                        responseText.substring(0, 300)
+                    );
+                }
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || "Update thất bại"
+                    );
+                }
+
                 showMessage(
-                    "Đã gửi firmware.\n" +
-                    "Đang chờ ESP32 phản hồi...",
+                    data.message +
+                    "\n\nĐang chờ ESP32 cập nhật...",
                     "info"
                 );
 
-                continue;
+                await watchOTAStatus(data.machineId);
             }
-
-            if (data.status === "command_sent")
-            {
+            catch (error) {
                 showMessage(
-                    "Đã gửi lệnh OTA.\n" +
-                    "Đang chờ ESP32 nhận lệnh...",
-                    "info"
-                );
-            }
-            else if (data.status === "updating")
-            {
-                showMessage(
-                    "ESP32 đang cập nhật firmware " +
-                    data.version +
-                    "...\n\n" +
-                    data.message,
-                    "info"
-                );
-            }
-            else if (data.status === "success")
-            {
-                showMessage(
-                    "CẬP NHẬT THÀNH CÔNG\n\n" +
-                    "Machine: " + machineId +
-                    "\nVersion: " + data.version +
-                    "\n" + data.message,
-                    "success"
-                );
-
-                return;
-            }
-            else if (
-                data.status === "failed" ||
-                data.status === "rejected"
-            )
-            {
-                showMessage(
-                    "CẬP NHẬT THẤT BẠI\n\n" +
-                    "Machine: " + machineId +
-                    "\nVersion: " + data.version +
-                    "\n" + data.message,
+                    "Lỗi: " + error.message,
                     "error"
                 );
-
-                return;
             }
-            else if (data.status === "online")
-            {
-                showMessage(
-                    "Thiết bị đang online.\n" +
-                    "Firmware hiện tại: " +
-                    data.version,
-                    "info"
+            finally {
+                button.disabled = false;
+                button.textContent = "UPDATE FIRMWARE";
+            }
+        });
+        async function watchOTAStatus(machineId) {
+            const maxChecks = 90;
+
+            for (let check = 0; check < maxChecks; check++) {
+                await new Promise(resolve =>
+                    setTimeout(resolve, 2000)
                 );
-            }
-        }
-        catch (error)
-        {
-            console.error(error);
-        }
-    }
 
-    showMessage(
-        "Hết thời gian chờ ESP32 xác nhận cập nhật.",
-        "error"
-    );
-}
-</script>
+                try {
+                    const response = await fetch(
+                        "/api/ota-status/" +
+                        encodeURIComponent(machineId)
+                    );
+
+                    const data = await response.json();
+
+                    if (!data.found) {
+                        showMessage(
+                            "Đã gửi firmware.\n" +
+                            "Đang chờ ESP32 phản hồi...",
+                            "info"
+                        );
+
+                        continue;
+                    }
+
+                    if (data.status === "command_sent") {
+                        showMessage(
+                            "Đã gửi lệnh OTA.\n" +
+                            "Đang chờ ESP32 nhận lệnh...",
+                            "info"
+                        );
+                    }
+                    else if (data.status === "updating") {
+                        showMessage(
+                            "ESP32 đang cập nhật firmware " +
+                            data.version +
+                            "...\n\n" +
+                            data.message,
+                            "info"
+                        );
+                    }
+                    else if (data.status === "success") {
+                        showMessage(
+                            "✅ CẬP NHẬT FIRMWARE THÀNH CÔNG\n\n" +
+                            "Machine ID: " + machineId +
+                            "\nPhiên bản mới: " + data.version +
+                            "\n\n" + data.message,
+                            "success"
+                        );
+
+                        button.disabled = false;
+                        button.textContent = "UPDATE FIRMWARE";
+
+                        return;
+                    }
+                    else if (
+                        data.status === "failed" ||
+                        data.status === "rejected"
+                    ) {
+                        showMessage(
+                            "CẬP NHẬT THẤT BẠI\n\n" +
+                            "Machine: " + machineId +
+                            "\nVersion: " + data.version +
+                            "\n" + data.message,
+                            "error"
+                        );
+
+                        return;
+                    }
+                    else if (data.status === "online") {
+                        showMessage(
+                            "Thiết bị đã online.\n" +
+                            "Firmware hiện tại: " + data.version +
+                            "\nĐang chờ xác nhận kết quả OTA...",
+                            "info"
+                        );
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                }
+            }
+
+            showMessage(
+                "Hết thời gian chờ ESP32 xác nhận cập nhật.",
+                "error"
+            );
+        }
+    </script>
 
 </body>
+
 </html>
