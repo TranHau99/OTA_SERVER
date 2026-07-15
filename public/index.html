@@ -332,6 +332,20 @@
             background: linear-gradient(135deg, var(--primary), var(--primary2));
         }
 
+        .delete-btn {
+            border: none;
+            border-radius: 9px;
+            padding: 8px 11px;
+            color: #fecaca;
+            font-size: 12px;
+            font-weight: 800;
+            background: rgba(239, 68, 68, 0.14);
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.24);
+        }
+
         .empty-state {
             padding: 34px 20px;
             text-align: center;
@@ -1008,13 +1022,23 @@
                 <td>${escapeHtml(machine.message || machine.status || "—")}</td>
                 <td>${escapeHtml(formatLastSeen(machine.updatedAt))}</td>
                 <td>
-                    <button
-                        class="select-btn"
-                        type="button"
-                        data-machine="${escapeHtml(machine.machineId)}"
-                    >
-                        Chọn máy
-                    </button>
+                    <div style="display:flex; gap:8px;">
+                        <button
+                            class="select-btn"
+                            type="button"
+                            data-machine="${escapeHtml(machine.machineId)}"
+                            >
+                                Chọn máy
+                            </button>
+
+                            <button
+                                class="delete-btn"
+                                type="button"
+                                data-delete-machine="${escapeHtml(machine.machineId)}"
+                            >
+                                  Xóa
+                             </button>
+                        </div>
                 </td>
             </tr>
         `;
@@ -1025,6 +1049,28 @@
                     selectMachine(button.dataset.machine);
                 });
             });
+            machineTableBody
+                .querySelectorAll("[data-delete-machine]")
+                .forEach(button => {
+                    button.addEventListener("click", async () => {
+                        const machineId =
+                            button.dataset.deleteMachine;
+
+                        const confirmed = confirm(
+                            "Xóa thiết bị " +
+                            machineId +
+                            " khỏi danh sách?"
+                        );
+
+                        if (!confirmed) {
+                            return;
+                        }
+
+                        await deleteMachineFromDashboard(
+                            machineId
+                        );
+                    });
+                });
         }
 
         function renderSelectedMachine() {
@@ -1130,7 +1176,35 @@
                 console.error(error);
             }
         }
+        async function deleteMachineFromDashboard(machineId) {
+            try {
+                const data = await fetchJson(
+                    "/api/machines/" +
+                    encodeURIComponent(machineId),
+                    {
+                        method: "DELETE"
+                    }
+                );
 
+                addLog(
+                    data.message ||
+                    "Đã xóa thiết bị " + machineId,
+                    "success"
+                );
+
+                if (selectedMachineId === machineId) {
+                    selectedMachineId = "";
+                }
+
+                await refreshMachines();
+            }
+            catch (error) {
+                alert(
+                    "Không thể xóa thiết bị: " +
+                    error.message
+                );
+            }
+        }
         function setMessage(message, type) {
             messageBox.className = "message msg-" + type;
             messageBox.textContent = message;

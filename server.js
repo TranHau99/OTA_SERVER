@@ -7,7 +7,8 @@ const config = require("./config");
 const {
     publishOTA,
     getOTAStatus,
-    getAllMachines
+    getAllMachines,
+    deleteMachine
 } = require("./mqtt");
 
 console.log("server.js loaded mqtt.js");
@@ -110,7 +111,37 @@ app.get("/api/machines", (req, res) => {
     });
 });
 
+app.delete("/api/machines/:machineId", (req, res) => {
+    const machineId =
+        String(req.params.machineId || "")
+            .trim()
+            .toUpperCase();
 
+    if (!machineId)
+    {
+        return res.status(400).json({
+            success: false,
+            message: "Machine ID không hợp lệ"
+        });
+    }
+
+    const deleted =
+        deleteMachine(machineId);
+
+    if (!deleted)
+    {
+        return res.status(404).json({
+            success: false,
+            message: "Không tìm thấy thiết bị"
+        });
+    }
+
+    return res.json({
+        success: true,
+        machineId: machineId,
+        message: `Đã xóa thiết bị ${machineId}`
+    });
+});
 // API upload firmware và gửi MQTT
 app.post("/api/update", upload.single("firmware"), async (req, res) => {
     let savedFilePath = "";

@@ -231,9 +231,36 @@ function getAllMachines() {
             return a.machineId.localeCompare(b.machineId);
         });
 }
+function deleteMachine(machineId)
+{
+    const normalizedId =
+        String(machineId || "")
+            .trim()
+            .toUpperCase();
+
+    if (!normalizedId)
+    {
+        return false;
+    }
+
+    if (!otaStates[normalizedId])
+    {
+        return false;
+    }
+
+    delete otaStates[normalizedId];
+
+    console.log("==================================");
+    console.log("MACHINE REMOVED");
+    console.log("Machine:", normalizedId);
+    console.log("==================================");
+
+    return true;
+}
 module.exports = {
     publishOTA,
     getOTAStatus,
-    getAllMachines
+    getAllMachines,
+    deleteMachine
 };
 
