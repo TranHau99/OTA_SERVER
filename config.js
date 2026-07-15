@@ -1,30 +1,12 @@
 module.exports = {
-
-    //==========================
-    // MQTT
-    //==========================
     mqtt: {
-
         host: "mqtt://broker.hivemq.com:1883",
-
-        port: 1883,
-
-        topic_cmd: "wash/cmd",
-
-        topic_status: "wash/status"
-
+        port: 1883
     },
-
-    //==========================
-    // WEB SERVER
-    //==========================
     web: {
-
         port: 3000
-
     },
-
-    //==========================
-   
-
+    security: {
+        otaPassword: process.env.OTA_PASSWORD || "change-this-password"
+    }
 };
