@@ -6,7 +6,8 @@ const fs = require("fs");
 const config = require("./config");
 const {
     publishOTA,
-    getOTAStatus
+    getOTAStatus,
+    getAllMachines
 } = require("./mqtt");
 
 console.log("server.js loaded mqtt.js");
@@ -85,6 +86,26 @@ app.get("/api/ota-status/:machineId", (req, res) => {
                 : "offline"
     });
 });
+
+app.get("/api/machines", (req, res) => {
+    res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, private",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    });
+
+    const machines = getAllMachines();
+
+    return res.json({
+        success: true,
+        total: machines.length,
+        online: machines.filter(machine => machine.isOnline).length,
+        offline: machines.filter(machine => !machine.isOnline).length,
+        machines: machines
+    });
+});
+
+
 // API upload firmware và gửi MQTT
 app.post("/api/update", upload.single("firmware"), async (req, res) => {
     let savedFilePath = "";

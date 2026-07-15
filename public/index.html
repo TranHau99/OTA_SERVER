@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,11 +73,9 @@
             border: 1px solid rgba(56, 189, 248, 0.35);
             border-radius: 16px;
             font-size: 28px;
-            background: linear-gradient(
-                145deg,
-                rgba(56, 189, 248, 0.23),
-                rgba(14, 165, 233, 0.06)
-            );
+            background: linear-gradient(145deg,
+                    rgba(56, 189, 248, 0.23),
+                    rgba(14, 165, 233, 0.06));
             box-shadow: 0 12px 36px rgba(14, 165, 233, 0.15);
         }
 
@@ -439,8 +438,13 @@
         }
 
         @keyframes loading-slide {
-            0% { transform: translateX(-115%); }
-            100% { transform: translateX(300%); }
+            0% {
+                transform: translateX(-115%);
+            }
+
+            100% {
+                transform: translateX(300%);
+            }
         }
 
         .result {
@@ -578,696 +582,582 @@
 </head>
 
 <body>
-<div class="page">
+    <div class="page">
 
-    <header class="topbar">
-        <div class="brand">
-            <div class="brand-icon">🐶</div>
-            <div>
-                <h1>Dog Wash Cloud OTA</h1>
-                <p>Quản lý và cập nhật firmware ESP32 từ xa</p>
-            </div>
-        </div>
-
-        <div class="cloud-status">
-            <span class="cloud-dot"></span>
-            Cloud Server Online
-        </div>
-    </header>
-
-    <section class="hero">
-        <div class="eyebrow">Firmware Management System</div>
-        <h2>Cập nhật thiết bị an toàn từ bất kỳ đâu</h2>
-        <p>
-            Chọn đúng Machine ID, tải firmware mới lên và theo dõi
-            trạng thái ESP32 theo thời gian thực.
-        </p>
-    </section>
-
-    <main class="grid">
-
-        <section class="card">
-            <div class="card-header">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-icon">🐶</div>
                 <div>
-                    <h3>Thông tin thiết bị</h3>
-                    <p>Online khi có phản hồi trong 15 giây gần nhất</p>
-                </div>
-
-                <span id="machineStatusBadge" class="status-badge status-unknown">
-                    Chưa kiểm tra
-                </span>
-            </div>
-
-            <div class="card-body">
-                <div class="machine-visual">
-                    <div class="machine-icon">⚙️</div>
-                    <div>
-                        <div class="machine-name">Dog Wash Machine</div>
-                        <div id="machineIdDisplay" class="machine-id-display">
-                            WASH_20691C
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-list">
-                    <div class="info-row">
-                        <span class="info-label">Firmware hiện tại</span>
-                        <span id="currentVersion" class="info-value">Chưa xác định</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Trạng thái OTA</span>
-                        <span id="currentOtaStatus" class="info-value">Chưa có dữ liệu</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Phản hồi cuối</span>
-                        <span id="lastSeen" class="info-value">—</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Độ trễ phản hồi</span>
-                        <span id="messageAge" class="info-value">—</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">MQTT Topic</span>
-                        <span id="mqttTopic" class="info-value">
-                            wash/WASH_20691C/ota
-                        </span>
-                    </div>
+                    <h1>Dog Wash Cloud OTA</h1>
+                    <p>Quản lý và cập nhật firmware ESP32 từ xa</p>
                 </div>
             </div>
+
+            <div class="cloud-status">
+                <span class="cloud-dot"></span>
+                Cloud Server Online
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="eyebrow">Firmware Management System</div>
+            <h2>Cập nhật thiết bị an toàn từ bất kỳ đâu</h2>
+            <p>
+                Chọn đúng Machine ID, tải firmware mới lên và theo dõi
+                trạng thái ESP32 theo thời gian thực.
+            </p>
         </section>
 
-        <section class="card">
-            <div class="card-header">
-                <div>
-                    <h3>Cập nhật firmware</h3>
-                    <p>Chỉ sử dụng firmware build đúng cho ESP32 này</p>
+        <main class="grid">
+
+            <section class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>Thông tin thiết bị</h3>
+                        <p>Online khi có phản hồi trong 15 giây gần nhất</p>
+                    </div>
+
+                    <span id="machineStatusBadge" class="status-badge status-unknown">
+                        Chưa kiểm tra
+                    </span>
                 </div>
-            </div>
 
-            <div class="card-body">
-                <form id="otaForm">
-                    <div class="form-grid">
-                        <div class="field">
-                            <label for="machineId">Machine ID</label>
-                            <input
-                                type="text"
-                                id="machineId"
-                                name="machineId"
-                                value="WASH_20691C"
-                                autocomplete="off"
-                                required
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label for="version">Phiên bản firmware mới</label>
-                            <input
-                                type="text"
-                                id="version"
-                                name="version"
-                                placeholder="Ví dụ: 1.0.11"
-                                autocomplete="off"
-                                required
-                            >
-                        </div>
-
-                        <div class="field field-full">
-                            <label for="firmware">Chọn firmware (.bin)</label>
-                            <input
-                                type="file"
-                                id="firmware"
-                                name="firmware"
-                                accept=".bin"
-                                required
-                            >
-                            <div class="file-note">
-                                File thường nằm trong:
-                                <strong>.pio/build/esp32dev/firmware.bin</strong>
+                <div class="card-body">
+                    <div class="machine-visual">
+                        <div class="machine-icon">⚙️</div>
+                        <div>
+                            <div class="machine-name">Dog Wash Machine</div>
+                            <div id="machineIdDisplay" class="machine-id-display">
+                                WASH_20691C
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" id="updateButton" class="update-button">
-                        <span>🚀</span>
-                        <span id="buttonText">UPDATE FIRMWARE</span>
-                    </button>
-                </form>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">Firmware hiện tại</span>
+                            <span id="currentVersion" class="info-value">Chưa xác định</span>
+                        </div>
 
-                <div id="progressWrapper" class="progress-wrapper">
-                    <div class="progress-header">
-                        <span id="progressLabel">Đang chuẩn bị cập nhật...</span>
-                        <span id="progressPercent">—</span>
+                        <div class="info-row">
+                            <span class="info-label">Trạng thái OTA</span>
+                            <span id="currentOtaStatus" class="info-value">Chưa có dữ liệu</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Phản hồi cuối</span>
+                            <span id="lastSeen" class="info-value">—</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Độ trễ phản hồi</span>
+                            <span id="messageAge" class="info-value">—</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">MQTT Topic</span>
+                            <span id="mqttTopic" class="info-value">
+                                wash/WASH_20691C/ota
+                            </span>
+                        </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="progress-track">
-                        <div id="progressBar" class="progress-bar"></div>
+            <section class="card">
+                <div class="card-header">
+                    <div>
+                        <h3>Cập nhật firmware</h3>
+                        <p>Chỉ sử dụng firmware build đúng cho ESP32 này</p>
                     </div>
                 </div>
 
-                <div id="result" class="result"></div>
-            </div>
-        </section>
+                <div class="card-body">
+                    <form id="otaForm">
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="machineId">Machine ID</label>
+                                <input type="text" id="machineId" name="machineId" value="WASH_20691C"
+                                    autocomplete="off" required>
+                            </div>
 
-        <section class="card log-panel">
-            <div class="card-header">
-                <div>
-                    <h3>Nhật ký OTA</h3>
-                    <p>Theo dõi upload, MQTT và phản hồi của ESP32</p>
+                            <div class="field">
+                                <label for="version">Phiên bản firmware mới</label>
+                                <input type="text" id="version" name="version" placeholder="Ví dụ: 1.0.11"
+                                    autocomplete="off" required>
+                            </div>
+
+                            <div class="field field-full">
+                                <label for="firmware">Chọn firmware (.bin)</label>
+                                <input type="file" id="firmware" name="firmware" accept=".bin" required>
+                                <div class="file-note">
+                                    File thường nằm trong:
+                                    <strong>.pio/build/esp32dev/firmware.bin</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="updateButton" class="update-button">
+                            <span>🚀</span>
+                            <span id="buttonText">UPDATE FIRMWARE</span>
+                        </button>
+                    </form>
+
+                    <div id="progressWrapper" class="progress-wrapper">
+                        <div class="progress-header">
+                            <span id="progressLabel">Đang chuẩn bị cập nhật...</span>
+                            <span id="progressPercent">—</span>
+                        </div>
+
+                        <div class="progress-track">
+                            <div id="progressBar" class="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <div id="result" class="result"></div>
                 </div>
-            </div>
+            </section>
+            <section class="card log-panel">
+                <div class="card-header">
+                    <div>
+                        <h3>Danh sách thiết bị</h3>
+                        <p>
+                            Các máy đã từng gửi trạng thái đến server
+                        </p>
+                    </div>
 
-            <div class="card-body">
-                <div id="logContainer" class="log-container">
-                    <div id="emptyLog" class="empty-log">
-                        Chưa có hoạt động OTA.
+                    <span id="machineSummary" class="status-badge status-unknown">
+                        0 thiết bị
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div style="overflow-x:auto;">
+                        <table id="machineTable" style="
+                width:100%;
+                border-collapse:collapse;
+                min-width:700px;
+            ">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;padding:12px;">Machine ID</th>
+                                    <th style="text-align:left;padding:12px;">Firmware</th>
+                                    <th style="text-align:left;padding:12px;">Kết nối</th>
+                                    <th style="text-align:left;padding:12px;">Phản hồi cuối</th>
+                                    <th style="text-align:left;padding:12px;">Thao tác</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="machineTableBody">
+                                <tr>
+                                    <td colspan="5" style="
+                            padding:18px;
+                            text-align:center;
+                            color:#94a3b8;
+                        ">
+                                        Đang tải danh sách thiết bị...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+            <section class="card log-panel">
+                <div class="card-header">
+                    <div>
+                        <h3>Nhật ký OTA</h3>
+                        <p>Theo dõi upload, MQTT và phản hồi của ESP32</p>
+                    </div>
+                </div>
 
-    </main>
+                <div class="card-body">
+                    <div id="logContainer" class="log-container">
+                        <div id="emptyLog" class="empty-log">
+                            Chưa có hoạt động OTA.
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    <footer class="footer">
-        Dog Wash Cloud OTA · Render + MQTT + ESP32
-    </footer>
-</div>
+        </main>
 
-<script>
-    const OFFLINE_TIMEOUT_MS = 15000;
+        <footer class="footer">
+            Dog Wash Cloud OTA · Render + MQTT + ESP32
+        </footer>
+    </div>
 
-    const form = document.getElementById("otaForm");
-    const machineIdInput = document.getElementById("machineId");
-    const versionInput = document.getElementById("version");
-    const firmwareInput = document.getElementById("firmware");
-    const updateButton = document.getElementById("updateButton");
-    const buttonText = document.getElementById("buttonText");
-    const result = document.getElementById("result");
+    <script>
+        const OFFLINE_TIMEOUT_MS = 15000;
 
-    const progressWrapper = document.getElementById("progressWrapper");
-    const progressBar = document.getElementById("progressBar");
-    const progressLabel = document.getElementById("progressLabel");
-    const progressPercent = document.getElementById("progressPercent");
+        const form = document.getElementById("otaForm");
+        const machineIdInput = document.getElementById("machineId");
+        const versionInput = document.getElementById("version");
+        const firmwareInput = document.getElementById("firmware");
+        const updateButton = document.getElementById("updateButton");
+        const buttonText = document.getElementById("buttonText");
+        const result = document.getElementById("result");
 
-    const machineStatusBadge = document.getElementById("machineStatusBadge");
-    const machineIdDisplay = document.getElementById("machineIdDisplay");
-    const currentVersion = document.getElementById("currentVersion");
-    const currentOtaStatus = document.getElementById("currentOtaStatus");
-    const lastSeen = document.getElementById("lastSeen");
-    const messageAge = document.getElementById("messageAge");
-    const mqttTopic = document.getElementById("mqttTopic");
+        const progressWrapper = document.getElementById("progressWrapper");
+        const progressBar = document.getElementById("progressBar");
+        const progressLabel = document.getElementById("progressLabel");
+        const progressPercent = document.getElementById("progressPercent");
 
-    const logContainer = document.getElementById("logContainer");
-    const emptyLog = document.getElementById("emptyLog");
+        const machineStatusBadge = document.getElementById("machineStatusBadge");
+        const machineIdDisplay = document.getElementById("machineIdDisplay");
+        const currentVersion = document.getElementById("currentVersion");
+        const currentOtaStatus = document.getElementById("currentOtaStatus");
+        const lastSeen = document.getElementById("lastSeen");
+        const messageAge = document.getElementById("messageAge");
+        const mqttTopic = document.getElementById("mqttTopic");
 
-    let statusWatchToken = 0;
+        const logContainer = document.getElementById("logContainer");
+        const emptyLog = document.getElementById("emptyLog");
 
-    function normalizeMachineId(value) {
-        return String(value || "").trim().toUpperCase();
-    }
+        let statusWatchToken = 0;
 
-    function formatDate(value) {
-        if (!value) return "—";
 
-        const date = new Date(value);
 
-        if (Number.isNaN(date.getTime())) {
-            return value;
+        const machineSummary =
+            document.getElementById("machineSummary");
+
+        const machineTableBody =
+            document.getElementById("machineTableBody");
+
+        function escapeHtml(value) {
+            return String(value || "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
         }
 
-        return date.toLocaleString("vi-VN");
-    }
+        async function refreshMachineList() {
+            try {
+                const response = await fetch(
+                    "/api/machines?time=" + Date.now(),
+                    {
+                        cache: "no-store"
+                    }
+                );
 
-    function getAgeMs(updatedAt) {
-        if (!updatedAt) return Number.POSITIVE_INFINITY;
+                const data = await response.json();
 
-        const time = new Date(updatedAt).getTime();
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || "Không tải được danh sách máy"
+                    );
+                }
 
-        if (!Number.isFinite(time)) {
-            return Number.POSITIVE_INFINITY;
+                machineSummary.className =
+                    "status-badge status-online";
+
+                machineSummary.textContent =
+                    data.online + " online / " +
+                    data.offline + " offline";
+
+                if (!data.machines.length) {
+                    machineTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="
+                        padding:18px;
+                        text-align:center;
+                        color:#94a3b8;
+                    ">
+                        Chưa có thiết bị nào gửi trạng thái.
+                    </td>
+                </tr>
+            `;
+
+                    return;
+                }
+
+                machineTableBody.innerHTML =
+                    data.machines.map(machine => {
+                        const statusText =
+                            machine.isOnline ? "Online" : "Offline";
+
+                        const statusClass =
+                            machine.isOnline
+                                ? "status-online"
+                                : "status-error";
+
+                        return `
+                    <tr style="
+                        border-top:1px solid rgba(148,163,184,0.12);
+                    ">
+                        <td style="padding:12px;">
+                            <strong>
+                                ${escapeHtml(machine.machineId)}
+                            </strong>
+                        </td>
+
+                        <td style="padding:12px;">
+                            ${escapeHtml(machine.version || "—")}
+                        </td>
+
+                        <td style="padding:12px;">
+                            <span class="status-badge ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+
+                        <td style="padding:12px;">
+                            ${escapeHtml(
+                            formatLastSeen(machine.updatedAt)
+                        )}
+                        </td>
+
+                        <td style="padding:12px;">
+                            <button
+                                type="button"
+                                class="update-button"
+                                style="
+                                    min-height:38px;
+                                    width:auto;
+                                    padding:8px 14px;
+                                "
+                                onclick="selectMachine(
+                                    '${escapeHtml(machine.machineId)}'
+                                )"
+                            >
+                                Chọn máy
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                    }).join("");
+            }
+            catch (error) {
+                console.error(error);
+
+                machineSummary.className =
+                    "status-badge status-error";
+
+                machineSummary.textContent =
+                    "Lỗi tải danh sách";
+            }
         }
 
-        return Math.max(0, Date.now() - time);
-    }
+        function selectMachine(machineId) {
+            machineIdInput.value = machineId;
+            machineIdInput.dispatchEvent(new Event("input"));
+            refreshMachineStatus();
 
-    function formatLastSeen(updatedAt) {
-        const ageMs = getAgeMs(updatedAt);
-
-        if (!Number.isFinite(ageMs)) {
-            return "—";
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+        function normalizeMachineId(value) {
+            return String(value || "").trim().toUpperCase();
         }
 
-        const seconds = Math.floor(ageMs / 1000);
+        function formatDate(value) {
+            if (!value) return "—";
 
-        if (seconds < 5) return "Vừa xong";
-        if (seconds < 60) return seconds + " giây trước";
+            const date = new Date(value);
 
-        const minutes = Math.floor(seconds / 60);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
 
-        if (minutes < 60) return minutes + " phút trước";
-
-        return formatDate(updatedAt);
-    }
-
-    function formatAge(ageMs) {
-        if (!Number.isFinite(ageMs)) return "—";
-
-        const seconds = Math.floor(ageMs / 1000);
-
-        if (seconds < 60) return seconds + " giây";
-
-        const minutes = Math.floor(seconds / 60);
-
-        if (minutes < 60) return minutes + " phút";
-
-        const hours = Math.floor(minutes / 60);
-        return hours + " giờ";
-    }
-
-    function setButtonLoading(isLoading) {
-        updateButton.disabled = isLoading;
-        buttonText.textContent =
-            isLoading ? "ĐANG XỬ LÝ..." : "UPDATE FIRMWARE";
-    }
-
-    function showMessage(message, type) {
-        result.className = "result result-" + type;
-        result.textContent = message;
-    }
-
-    function hideMessage() {
-        result.className = "result";
-        result.textContent = "";
-    }
-
-    function showIndeterminateProgress(label) {
-        progressWrapper.style.display = "block";
-        progressWrapper.classList.add("indeterminate");
-        progressLabel.textContent = label;
-        progressPercent.textContent = "Đang xử lý";
-        progressBar.style.width = "38%";
-    }
-
-    function updateProgress(percent, label) {
-        const numericValue = Number(percent);
-
-        if (!Number.isFinite(numericValue)) {
-            showIndeterminateProgress(label);
-            return;
+            return date.toLocaleString("vi-VN");
         }
 
-        const value = Math.max(0, Math.min(100, numericValue));
+        function getAgeMs(updatedAt) {
+            if (!updatedAt) return Number.POSITIVE_INFINITY;
 
-        progressWrapper.style.display = "block";
-        progressWrapper.classList.remove("indeterminate");
-        progressBar.style.width = value + "%";
-        progressPercent.textContent = value + "%";
-        progressLabel.textContent = label;
-    }
+            const time = new Date(updatedAt).getTime();
 
-    function hideProgress() {
-        progressWrapper.style.display = "none";
-        progressWrapper.classList.remove("indeterminate");
-        progressBar.style.width = "0%";
-        progressPercent.textContent = "—";
-    }
+            if (!Number.isFinite(time)) {
+                return Number.POSITIVE_INFINITY;
+            }
 
-    function addLog(message, type = "info") {
-        if (emptyLog && emptyLog.isConnected) {
-            emptyLog.remove();
+            return Math.max(0, Date.now() - time);
         }
 
-        const item = document.createElement("div");
-        item.className = "log-item";
+        function formatLastSeen(updatedAt) {
+            const ageMs = getAgeMs(updatedAt);
 
-        const now = new Date().toLocaleTimeString("vi-VN");
+            if (!Number.isFinite(ageMs)) {
+                return "—";
+            }
 
-        item.innerHTML = `
+            const seconds = Math.floor(ageMs / 1000);
+
+            if (seconds < 5) return "Vừa xong";
+            if (seconds < 60) return seconds + " giây trước";
+
+            const minutes = Math.floor(seconds / 60);
+
+            if (minutes < 60) return minutes + " phút trước";
+
+            return formatDate(updatedAt);
+        }
+
+        function formatAge(ageMs) {
+            if (!Number.isFinite(ageMs)) return "—";
+
+            const seconds = Math.floor(ageMs / 1000);
+
+            if (seconds < 60) return seconds + " giây";
+
+            const minutes = Math.floor(seconds / 60);
+
+            if (minutes < 60) return minutes + " phút";
+
+            const hours = Math.floor(minutes / 60);
+            return hours + " giờ";
+        }
+
+        function setButtonLoading(isLoading) {
+            updateButton.disabled = isLoading;
+            buttonText.textContent =
+                isLoading ? "ĐANG XỬ LÝ..." : "UPDATE FIRMWARE";
+        }
+
+        function showMessage(message, type) {
+            result.className = "result result-" + type;
+            result.textContent = message;
+        }
+
+        function hideMessage() {
+            result.className = "result";
+            result.textContent = "";
+        }
+
+        function showIndeterminateProgress(label) {
+            progressWrapper.style.display = "block";
+            progressWrapper.classList.add("indeterminate");
+            progressLabel.textContent = label;
+            progressPercent.textContent = "Đang xử lý";
+            progressBar.style.width = "38%";
+        }
+
+        function updateProgress(percent, label) {
+            const numericValue = Number(percent);
+
+            if (!Number.isFinite(numericValue)) {
+                showIndeterminateProgress(label);
+                return;
+            }
+
+            const value = Math.max(0, Math.min(100, numericValue));
+
+            progressWrapper.style.display = "block";
+            progressWrapper.classList.remove("indeterminate");
+            progressBar.style.width = value + "%";
+            progressPercent.textContent = value + "%";
+            progressLabel.textContent = label;
+        }
+
+        function hideProgress() {
+            progressWrapper.style.display = "none";
+            progressWrapper.classList.remove("indeterminate");
+            progressBar.style.width = "0%";
+            progressPercent.textContent = "—";
+        }
+
+        function addLog(message, type = "info") {
+            if (emptyLog && emptyLog.isConnected) {
+                emptyLog.remove();
+            }
+
+            const item = document.createElement("div");
+            item.className = "log-item";
+
+            const now = new Date().toLocaleTimeString("vi-VN");
+
+            item.innerHTML = `
             <span class="log-time">${now}</span>
             <span class="log-${type}"></span>
         `;
 
-        item.querySelector(".log-" + type).textContent = message;
+            item.querySelector(".log-" + type).textContent = message;
 
-        logContainer.appendChild(item);
-        logContainer.scrollTop = logContainer.scrollHeight;
-    }
-
-    function setBadge(cssClass, text) {
-        machineStatusBadge.className = "status-badge " + cssClass;
-        machineStatusBadge.textContent = text;
-    }
-
-    function updateMachinePanel(machineId, data) {
-        machineIdDisplay.textContent = machineId;
-        mqttTopic.textContent = "wash/" + machineId + "/ota";
-
-        if (!data || !data.found) {
-            setBadge("status-unknown", "Chưa có dữ liệu");
-            currentVersion.textContent = "Chưa xác định";
-            currentOtaStatus.textContent = "Đang chờ phản hồi";
-            lastSeen.textContent = "—";
-            messageAge.textContent = "—";
-            return;
+            logContainer.appendChild(item);
+            logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        const ageMs =
-            Number.isFinite(Number(data.ageMs))
-                ? Number(data.ageMs)
-                : getAgeMs(data.updatedAt);
+        function setBadge(cssClass, text) {
+            machineStatusBadge.className = "status-badge " + cssClass;
+            machineStatusBadge.textContent = text;
+        }
 
-        const isOnline =
-            typeof data.isOnline === "boolean"
-                ? data.isOnline
-                : ageMs <= OFFLINE_TIMEOUT_MS;
+        function updateMachinePanel(machineId, data) {
+            machineIdDisplay.textContent = machineId;
+            mqttTopic.textContent = "wash/" + machineId + "/ota";
 
-        currentVersion.textContent =
-            data.version || "Chưa xác định";
+            if (!data || !data.found) {
+                setBadge("status-unknown", "Chưa có dữ liệu");
+                currentVersion.textContent = "Chưa xác định";
+                currentOtaStatus.textContent = "Đang chờ phản hồi";
+                lastSeen.textContent = "—";
+                messageAge.textContent = "—";
+                return;
+            }
 
-        currentOtaStatus.textContent =
-            data.message || data.status || "—";
+            const ageMs =
+                Number.isFinite(Number(data.ageMs))
+                    ? Number(data.ageMs)
+                    : getAgeMs(data.updatedAt);
 
-        lastSeen.textContent =
-            formatLastSeen(data.updatedAt);
+            const isOnline =
+                typeof data.isOnline === "boolean"
+                    ? data.isOnline
+                    : ageMs <= OFFLINE_TIMEOUT_MS;
 
-        messageAge.textContent =
-            formatAge(ageMs);
+            currentVersion.textContent =
+                data.version || "Chưa xác định";
 
-        if (!isOnline) {
-            setBadge("status-error", "Offline");
             currentOtaStatus.textContent =
-                "Mất kết nối với thiết bị";
-        }
-        else if (
-            data.status === "updating" ||
-            data.status === "command_sent"
-        ) {
-            setBadge("status-updating", "Đang cập nhật");
-        }
-        else if (data.status === "success") {
-            setBadge("status-success", "Cập nhật thành công");
-        }
-        else if (
-            data.status === "failed" ||
-            data.status === "rejected"
-        ) {
-            setBadge("status-error", "Có lỗi");
-        }
-        else {
-            setBadge("status-online", "Online");
-        }
-    }
+                data.message || data.status || "—";
 
-    async function fetchOTAStatus(machineId) {
-        const url =
-            "/api/ota-status/" +
-            encodeURIComponent(machineId) +
-            "?time=" +
-            Date.now();
+            lastSeen.textContent =
+                formatLastSeen(data.updatedAt);
 
-        const response = await fetch(url, {
-            cache: "no-store",
-            headers: {
-                "Cache-Control": "no-cache"
+            messageAge.textContent =
+                formatAge(ageMs);
+
+            if (!isOnline) {
+                setBadge("status-error", "Offline");
+                currentOtaStatus.textContent =
+                    "Mất kết nối với thiết bị";
             }
-        });
-
-        const responseText = await response.text();
-
-        let data;
-
-        try {
-            data = JSON.parse(responseText);
-        }
-        catch {
-            throw new Error("API trạng thái không trả về JSON.");
-        }
-
-        if (!response.ok || !data.success) {
-            throw new Error(
-                data.message || "Không đọc được trạng thái OTA."
-            );
-        }
-
-        return data;
-    }
-
-    async function refreshMachineStatus() {
-        const machineId =
-            normalizeMachineId(machineIdInput.value);
-
-        if (!machineId) return;
-
-        try {
-            const data = await fetchOTAStatus(machineId);
-            updateMachinePanel(machineId, data);
-        }
-        catch (error) {
-            console.error(error);
-        }
-    }
-
-    async function watchOTAStatus(machineId, targetVersion) {
-        const myToken = ++statusWatchToken;
-        const maxChecks = 120;
-
-        for (let check = 0; check < maxChecks; check++) {
-            if (myToken !== statusWatchToken) return;
-
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            try {
-                const data = await fetchOTAStatus(machineId);
-                updateMachinePanel(machineId, data);
-
-                if (!data.found) {
-                    showIndeterminateProgress(
-                        "Đang chờ ESP32 phản hồi..."
-                    );
-
-                    showMessage(
-                        "Đã gửi firmware đến server.\n" +
-                        "Đang chờ thiết bị nhận lệnh OTA.",
-                        "info"
-                    );
-
-                    continue;
-                }
-
-                if (data.status === "command_sent") {
-                    showIndeterminateProgress(
-                        "Đã gửi lệnh OTA..."
-                    );
-
-                    showMessage(
-                        "Đã gửi lệnh OTA đến " +
-                        machineId +
-                        ".\nĐang chờ thiết bị phản hồi.",
-                        "info"
-                    );
-
-                    continue;
-                }
-
-                if (data.status === "updating") {
-                    if (
-                        data.progress !== null &&
-                        data.progress !== undefined
-                    ) {
-                        updateProgress(
-                            data.progress,
-                            "ESP32 đang tải và cài firmware..."
-                        );
-                    }
-                    else {
-                        showIndeterminateProgress(
-                            "ESP32 đang tải và cài firmware..."
-                        );
-                    }
-
-                    showMessage(
-                        "ESP32 ĐANG CẬP NHẬT\n\n" +
-                        "Machine ID: " + machineId +
-                        "\nPhiên bản: " +
-                        (data.version || targetVersion) +
-                        "\n\n" +
-                        (data.message || ""),
-                        "info"
-                    );
-
-                    continue;
-                }
-
-                if (
-                    data.status === "success" &&
-                    data.version === targetVersion
-                ) {
-                    updateProgress(100, "Cập nhật hoàn tất");
-
-                    showMessage(
-                        "✅ CẬP NHẬT FIRMWARE THÀNH CÔNG\n\n" +
-                        "Machine ID: " + machineId +
-                        "\nPhiên bản mới: " +
-                        data.version +
-                        "\n\n" +
-                        (data.message || ""),
-                        "success"
-                    );
-
-                    addLog(
-                        "Firmware " +
-                        data.version +
-                        " đã cập nhật thành công.",
-                        "success"
-                    );
-
-                    setButtonLoading(false);
-                    return;
-                }
-
-                if (
-                    data.status === "failed" ||
-                    data.status === "rejected"
-                ) {
-                    hideProgress();
-
-                    showMessage(
-                        "❌ CẬP NHẬT FIRMWARE THẤT BẠI\n\n" +
-                        "Machine ID: " + machineId +
-                        "\nPhiên bản: " +
-                        (data.version || targetVersion) +
-                        "\n\n" +
-                        (data.message || ""),
-                        "error"
-                    );
-
-                    addLog(
-                        data.message ||
-                        "ESP32 từ chối hoặc cập nhật thất bại.",
-                        "error"
-                    );
-
-                    setButtonLoading(false);
-                    return;
-                }
+            else if (
+                data.status === "updating" ||
+                data.status === "command_sent"
+            ) {
+                setBadge("status-updating", "Đang cập nhật");
             }
-            catch (error) {
-                console.error(error);
-                addLog(
-                    "Không đọc được trạng thái: " +
-                    error.message,
-                    "error"
-                );
+            else if (data.status === "success") {
+                setBadge("status-success", "Cập nhật thành công");
+            }
+            else if (
+                data.status === "failed" ||
+                data.status === "rejected"
+            ) {
+                setBadge("status-error", "Có lỗi");
+            }
+            else {
+                setBadge("status-online", "Online");
             }
         }
 
-        hideProgress();
+        async function fetchOTAStatus(machineId) {
+            const url =
+                "/api/ota-status/" +
+                encodeURIComponent(machineId) +
+                "?time=" +
+                Date.now();
 
-        showMessage(
-            "Hết thời gian chờ ESP32 xác nhận cập nhật.",
-            "error"
-        );
-
-        addLog(
-            "Hết thời gian chờ phản hồi OTA.",
-            "error"
-        );
-
-        setButtonLoading(false);
-    }
-
-    machineIdInput.addEventListener("input", function () {
-        const machineId =
-            normalizeMachineId(machineIdInput.value);
-
-        machineIdDisplay.textContent =
-            machineId || "—";
-
-        mqttTopic.textContent =
-            machineId
-                ? "wash/" + machineId + "/ota"
-                : "—";
-    });
-
-    machineIdInput.addEventListener(
-        "change",
-        refreshMachineStatus
-    );
-
-    form.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        hideMessage();
-        hideProgress();
-
-        const machineId =
-            normalizeMachineId(machineIdInput.value);
-
-        const version =
-            String(versionInput.value || "").trim();
-
-        if (!machineId) {
-            showMessage(
-                "Machine ID không được để trống.",
-                "error"
-            );
-            return;
-        }
-
-        if (!version) {
-            showMessage(
-                "Hãy nhập phiên bản firmware mới.",
-                "error"
-            );
-            return;
-        }
-
-        if (!firmwareInput.files.length) {
-            showMessage(
-                "Hãy chọn file firmware.bin.",
-                "error"
-            );
-            return;
-        }
-
-        const firmwareFile = firmwareInput.files[0];
-
-        if (!firmwareFile.name.toLowerCase().endsWith(".bin")) {
-            showMessage(
-                "Chỉ chấp nhận file có đuôi .bin.",
-                "error"
-            );
-            return;
-        }
-
-        const formData = new FormData(form);
-
-        setButtonLoading(true);
-
-        showIndeterminateProgress(
-            "Đang upload firmware lên server..."
-        );
-
-        showMessage(
-            "Đang upload firmware và gửi lệnh OTA...",
-            "info"
-        );
-
-        addLog(
-            "Bắt đầu upload firmware " +
-            version +
-            " cho " +
-            machineId +
-            "."
-        );
-
-        try {
-            const response = await fetch("/api/update", {
-                method: "POST",
-                body: formData
+            const response = await fetch(url, {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache"
+                }
             });
 
             const responseText = await response.text();
@@ -1278,59 +1168,335 @@
                 data = JSON.parse(responseText);
             }
             catch {
-                throw new Error(
-                    "Server không trả về dữ liệu JSON hợp lệ."
-                );
+                throw new Error("API trạng thái không trả về JSON.");
             }
 
             if (!response.ok || !data.success) {
                 throw new Error(
-                    data.message ||
-                    "Không thể gửi firmware."
+                    data.message || "Không đọc được trạng thái OTA."
                 );
             }
 
-            addLog(
-                "Upload hoàn tất. Đã gửi lệnh MQTT đến " +
-                data.machineId +
-                ".",
-                "success"
-            );
-
-            showMessage(
-                data.message +
-                "\n\nĐang chờ ESP32 cập nhật...",
-                "info"
-            );
-
-            await watchOTAStatus(
-                data.machineId,
-                data.version
-            );
+            return data;
         }
-        catch (error) {
+
+        async function refreshMachineStatus() {
+            const machineId =
+                normalizeMachineId(machineIdInput.value);
+
+            if (!machineId) return;
+
+            try {
+                const data = await fetchOTAStatus(machineId);
+                updateMachinePanel(machineId, data);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function watchOTAStatus(machineId, targetVersion) {
+            const myToken = ++statusWatchToken;
+            const maxChecks = 120;
+
+            for (let check = 0; check < maxChecks; check++) {
+                if (myToken !== statusWatchToken) return;
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                try {
+                    const data = await fetchOTAStatus(machineId);
+                    updateMachinePanel(machineId, data);
+
+                    if (!data.found) {
+                        showIndeterminateProgress(
+                            "Đang chờ ESP32 phản hồi..."
+                        );
+
+                        showMessage(
+                            "Đã gửi firmware đến server.\n" +
+                            "Đang chờ thiết bị nhận lệnh OTA.",
+                            "info"
+                        );
+
+                        continue;
+                    }
+
+                    if (data.status === "command_sent") {
+                        showIndeterminateProgress(
+                            "Đã gửi lệnh OTA..."
+                        );
+
+                        showMessage(
+                            "Đã gửi lệnh OTA đến " +
+                            machineId +
+                            ".\nĐang chờ thiết bị phản hồi.",
+                            "info"
+                        );
+
+                        continue;
+                    }
+
+                    if (data.status === "updating") {
+                        if (
+                            data.progress !== null &&
+                            data.progress !== undefined
+                        ) {
+                            updateProgress(
+                                data.progress,
+                                "ESP32 đang tải và cài firmware..."
+                            );
+                        }
+                        else {
+                            showIndeterminateProgress(
+                                "ESP32 đang tải và cài firmware..."
+                            );
+                        }
+
+                        showMessage(
+                            "ESP32 ĐANG CẬP NHẬT\n\n" +
+                            "Machine ID: " + machineId +
+                            "\nPhiên bản: " +
+                            (data.version || targetVersion) +
+                            "\n\n" +
+                            (data.message || ""),
+                            "info"
+                        );
+
+                        continue;
+                    }
+
+                    if (
+                        data.status === "success" &&
+                        data.version === targetVersion
+                    ) {
+                        updateProgress(100, "Cập nhật hoàn tất");
+
+                        showMessage(
+                            "✅ CẬP NHẬT FIRMWARE THÀNH CÔNG\n\n" +
+                            "Machine ID: " + machineId +
+                            "\nPhiên bản mới: " +
+                            data.version +
+                            "\n\n" +
+                            (data.message || ""),
+                            "success"
+                        );
+
+                        addLog(
+                            "Firmware " +
+                            data.version +
+                            " đã cập nhật thành công.",
+                            "success"
+                        );
+
+                        setButtonLoading(false);
+                        return;
+                    }
+
+                    if (
+                        data.status === "failed" ||
+                        data.status === "rejected"
+                    ) {
+                        hideProgress();
+
+                        showMessage(
+                            "❌ CẬP NHẬT FIRMWARE THẤT BẠI\n\n" +
+                            "Machine ID: " + machineId +
+                            "\nPhiên bản: " +
+                            (data.version || targetVersion) +
+                            "\n\n" +
+                            (data.message || ""),
+                            "error"
+                        );
+
+                        addLog(
+                            data.message ||
+                            "ESP32 từ chối hoặc cập nhật thất bại.",
+                            "error"
+                        );
+
+                        setButtonLoading(false);
+                        return;
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                    addLog(
+                        "Không đọc được trạng thái: " +
+                        error.message,
+                        "error"
+                    );
+                }
+            }
+
             hideProgress();
 
             showMessage(
-                "Lỗi: " + error.message,
+                "Hết thời gian chờ ESP32 xác nhận cập nhật.",
                 "error"
             );
 
             addLog(
-                "Lỗi upload: " + error.message,
+                "Hết thời gian chờ phản hồi OTA.",
                 "error"
             );
 
             setButtonLoading(false);
         }
-    });
 
-    refreshMachineStatus();
+        machineIdInput.addEventListener("input", function () {
+            const machineId =
+                normalizeMachineId(machineIdInput.value);
 
-    setInterval(
-        refreshMachineStatus,
-        5000
-    );
-</script>
+            machineIdDisplay.textContent =
+                machineId || "—";
+
+            mqttTopic.textContent =
+                machineId
+                    ? "wash/" + machineId + "/ota"
+                    : "—";
+        });
+
+        machineIdInput.addEventListener(
+            "change",
+            refreshMachineStatus
+        );
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            hideMessage();
+            hideProgress();
+
+            const machineId =
+                normalizeMachineId(machineIdInput.value);
+
+            const version =
+                String(versionInput.value || "").trim();
+
+            if (!machineId) {
+                showMessage(
+                    "Machine ID không được để trống.",
+                    "error"
+                );
+                return;
+            }
+
+            if (!version) {
+                showMessage(
+                    "Hãy nhập phiên bản firmware mới.",
+                    "error"
+                );
+                return;
+            }
+
+            if (!firmwareInput.files.length) {
+                showMessage(
+                    "Hãy chọn file firmware.bin.",
+                    "error"
+                );
+                return;
+            }
+
+            const firmwareFile = firmwareInput.files[0];
+
+            if (!firmwareFile.name.toLowerCase().endsWith(".bin")) {
+                showMessage(
+                    "Chỉ chấp nhận file có đuôi .bin.",
+                    "error"
+                );
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            setButtonLoading(true);
+
+            showIndeterminateProgress(
+                "Đang upload firmware lên server..."
+            );
+
+            showMessage(
+                "Đang upload firmware và gửi lệnh OTA...",
+                "info"
+            );
+
+            addLog(
+                "Bắt đầu upload firmware " +
+                version +
+                " cho " +
+                machineId +
+                "."
+            );
+
+            try {
+                const response = await fetch("/api/update", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const responseText = await response.text();
+
+                let data;
+
+                try {
+                    data = JSON.parse(responseText);
+                }
+                catch {
+                    throw new Error(
+                        "Server không trả về dữ liệu JSON hợp lệ."
+                    );
+                }
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message ||
+                        "Không thể gửi firmware."
+                    );
+                }
+
+                addLog(
+                    "Upload hoàn tất. Đã gửi lệnh MQTT đến " +
+                    data.machineId +
+                    ".",
+                    "success"
+                );
+
+                showMessage(
+                    data.message +
+                    "\n\nĐang chờ ESP32 cập nhật...",
+                    "info"
+                );
+
+                await watchOTAStatus(
+                    data.machineId,
+                    data.version
+                );
+            }
+            catch (error) {
+                hideProgress();
+
+                showMessage(
+                    "Lỗi: " + error.message,
+                    "error"
+                );
+
+                addLog(
+                    "Lỗi upload: " + error.message,
+                    "error"
+                );
+
+                setButtonLoading(false);
+            }
+        });
+
+        refreshMachineStatus();
+
+        setInterval(
+            refreshMachineStatus,
+            5000
+        );
+    </script>
 </body>
+
 </html>

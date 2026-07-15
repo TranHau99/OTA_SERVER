@@ -189,9 +189,40 @@ function getOTAStatus(machineId)
         ageMs: ageMs
     };
 }
+function getAllMachines()
+{
+    const OFFLINE_TIMEOUT_MS = 15000;
+    const now = Date.now();
 
+    return Object.values(otaStates)
+        .map((state) => {
+            const lastSeenMs =
+                Number(state.lastSeenMs) ||
+                new Date(state.updatedAt).getTime();
+
+            const ageMs =
+                Number.isFinite(lastSeenMs)
+                    ? Math.max(0, now - lastSeenMs)
+                    : Number.POSITIVE_INFINITY;
+
+            return {
+                ...state,
+                ageMs: ageMs,
+                isOnline: ageMs <= OFFLINE_TIMEOUT_MS
+            };
+        })
+        .sort((a, b) => {
+            if (a.isOnline !== b.isOnline)
+            {
+                return a.isOnline ? -1 : 1;
+            }
+
+            return a.machineId.localeCompare(b.machineId);
+        });
+}
 module.exports = {
     publishOTA,
-    getOTAStatus
+    getOTAStatus,
+    getAllMachines
 };
 
