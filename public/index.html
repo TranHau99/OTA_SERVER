@@ -1,896 +1,979 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dog Wash Fleet OTA</title>
-
-<style>
-:root{
-    --bg:#07111f;
-    --bg2:#0c1728;
-    --panel:rgba(17,31,52,.92);
-    --panel2:rgba(12,24,42,.78);
-    --line:rgba(148,163,184,.16);
-    --text:#f8fafc;
-    --muted:#94a3b8;
-    --primary:#38bdf8;
-    --primary2:#0284c7;
-    --success:#22c55e;
-    --warning:#f59e0b;
-    --danger:#ef4444;
-    --offline:#64748b;
-    --shadow:0 22px 60px rgba(0,0,0,.28);
-}
-
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-
-body{
-    margin:0;
-    min-height:100vh;
-    color:var(--text);
-    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    background:
-        radial-gradient(circle at 10% 8%,rgba(14,165,233,.15),transparent 28%),
-        radial-gradient(circle at 90% 88%,rgba(34,197,94,.09),transparent 30%),
-        linear-gradient(145deg,var(--bg),var(--bg2));
-}
-
-button,input{font:inherit}
-button{cursor:pointer}
-
-.app{
-    width:min(1440px,calc(100% - 28px));
-    margin:0 auto;
-    padding:22px 0 42px;
-}
-
-.topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:18px;
-    margin-bottom:20px;
-}
-
-.brand{
-    display:flex;
-    align-items:center;
-    gap:14px;
-}
-
-.logo{
-    width:54px;
-    height:54px;
-    display:grid;
-    place-items:center;
-    border-radius:16px;
-    border:1px solid rgba(56,189,248,.34);
-    background:linear-gradient(145deg,rgba(56,189,248,.23),rgba(14,165,233,.05));
-    font-size:28px;
-    box-shadow:0 12px 36px rgba(14,165,233,.15);
-}
-
-.brand h1{
-    margin:0;
-    font-size:clamp(22px,3vw,31px);
-    letter-spacing:-.03em;
-}
-
-.brand p{
-    margin:4px 0 0;
-    color:var(--muted);
-    font-size:14px;
-}
-
-.cloud-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:9px;
-    padding:10px 14px;
-    border-radius:999px;
-    border:1px solid rgba(34,197,94,.24);
-    color:#bbf7d0;
-    background:rgba(34,197,94,.09);
-    font-size:13px;
-    font-weight:800;
-}
-
-.cloud-pill::before{
-    content:"";
-    width:9px;
-    height:9px;
-    border-radius:50%;
-    background:var(--success);
-    box-shadow:0 0 12px rgba(34,197,94,.8);
-}
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:14px;
-    margin-bottom:18px;
-}
-
-.stat-card{
-    padding:18px;
-    border:1px solid var(--line);
-    border-radius:18px;
-    background:var(--panel);
-    box-shadow:var(--shadow);
-}
-
-.stat-label{
-    color:var(--muted);
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    font-weight:800;
-}
-
-.stat-value{
-    margin-top:8px;
-    font-size:30px;
-    font-weight:900;
-    letter-spacing:-.04em;
-}
-
-.stat-note{
-    margin-top:5px;
-    color:var(--muted);
-    font-size:12px;
-}
-
-.layout{
-    display:grid;
-    grid-template-columns:minmax(0,1.38fr) minmax(360px,.82fr);
-    gap:18px;
-    align-items:start;
-}
-
-.panel{
-    border:1px solid var(--line);
-    border-radius:20px;
-    background:var(--panel);
-    box-shadow:var(--shadow);
-    overflow:hidden;
-}
-
-.panel-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:14px;
-    padding:20px;
-    border-bottom:1px solid var(--line);
-}
-
-.panel-header h2,
-.panel-header h3{
-    margin:0;
-    font-size:18px;
-}
-
-.panel-header p{
-    margin:5px 0 0;
-    color:var(--muted);
-    font-size:12px;
-}
-
-.toolbar{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-}
-
-.search{
-    min-width:230px;
-    padding:10px 12px;
-    border:1px solid rgba(148,163,184,.19);
-    border-radius:11px;
-    outline:none;
-    color:var(--text);
-    background:rgba(15,23,42,.75);
-}
-
-.search:focus{
-    border-color:rgba(56,189,248,.7);
-    box-shadow:0 0 0 4px rgba(56,189,248,.09);
-}
-
-.small-btn{
-    border:none;
-    border-radius:10px;
-    padding:10px 12px;
-    color:#e0f2fe;
-    font-weight:800;
-    background:rgba(14,165,233,.18);
-}
-
-.table-wrap{
-    overflow:auto;
-}
-
-table{
-    width:100%;
-    min-width:830px;
-    border-collapse:collapse;
-}
-
-th{
-    padding:13px 15px;
-    text-align:left;
-    color:var(--muted);
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:.07em;
-    border-bottom:1px solid var(--line);
-    background:rgba(8,17,31,.44);
-}
-
-td{
-    padding:14px 15px;
-    border-bottom:1px solid rgba(148,163,184,.10);
-    font-size:13px;
-}
-
-tbody tr{
-    transition:background .18s ease;
-}
-
-tbody tr:hover{
-    background:rgba(56,189,248,.045);
-}
-
-tbody tr.selected{
-    background:rgba(56,189,248,.09);
-}
-
-.machine-id{
-    color:#bae6fd;
-    font-family:Consolas,"Courier New",monospace;
-    font-weight:850;
-}
-
-.badge{
-    display:inline-flex;
-    align-items:center;
-    gap:7px;
-    padding:7px 10px;
-    border-radius:999px;
-    font-size:11px;
-    font-weight:850;
-    white-space:nowrap;
-}
-
-.badge::before{
-    content:"";
-    width:8px;
-    height:8px;
-    border-radius:50%;
-}
-
-.online{color:#bbf7d0;background:rgba(34,197,94,.11)}
-.online::before{background:var(--success);box-shadow:0 0 9px rgba(34,197,94,.7)}
-
-.offline{color:#fecaca;background:rgba(239,68,68,.11)}
-.offline::before{background:var(--danger)}
-
-.updating{color:#bae6fd;background:rgba(56,189,248,.11)}
-.updating::before{background:var(--primary);box-shadow:0 0 9px rgba(56,189,248,.7)}
-
-.unknown{color:#cbd5e1;background:rgba(100,116,139,.14)}
-.unknown::before{background:var(--offline)}
-
-.select-btn{
-    border:none;
-    border-radius:9px;
-    padding:8px 11px;
-    color:white;
-    font-size:12px;
-    font-weight:800;
-    background:linear-gradient(135deg,var(--primary),var(--primary2));
-}
-
-.empty-state{
-    padding:34px 20px;
-    text-align:center;
-    color:var(--muted);
-}
-
-.details{
-    position:sticky;
-    top:16px;
-}
-
-.detail-body{
-    padding:20px;
-}
-
-.device-hero{
-    display:flex;
-    gap:14px;
-    align-items:center;
-    padding:15px;
-    border:1px solid rgba(148,163,184,.13);
-    border-radius:15px;
-    background:rgba(15,23,42,.48);
-}
-
-.device-icon{
-    width:52px;
-    height:52px;
-    display:grid;
-    place-items:center;
-    flex:0 0 auto;
-    border-radius:15px;
-    font-size:26px;
-    background:rgba(56,189,248,.12);
-}
-
-.device-title{
-    margin:0 0 4px;
-    font-size:16px;
-    font-weight:900;
-}
-
-.device-code{
-    color:var(--primary);
-    font-family:Consolas,"Courier New",monospace;
-    font-size:13px;
-}
-
-.info-grid{
-    display:grid;
-    gap:9px;
-    margin-top:14px;
-}
-
-.info-row{
-    display:flex;
-    justify-content:space-between;
-    gap:14px;
-    padding:11px 12px;
-    border-radius:11px;
-    border:1px solid rgba(148,163,184,.09);
-    background:rgba(15,23,42,.35);
-}
-
-.info-label{
-    color:var(--muted);
-    font-size:12px;
-}
-
-.info-value{
-    max-width:65%;
-    text-align:right;
-    font-size:12px;
-    font-weight:800;
-    word-break:break-word;
-}
-
-.divider{
-    height:1px;
-    margin:18px 0;
-    background:var(--line);
-}
-
-.section-title{
-    margin:0 0 12px;
-    font-size:14px;
-}
-
-.form-grid{
-    display:grid;
-    gap:12px;
-}
-
-label{
-    display:block;
-    margin-bottom:7px;
-    color:#dbeafe;
-    font-size:12px;
-    font-weight:800;
-}
-
-input[type="text"],
-input[type="file"]{
-    width:100%;
-    min-height:44px;
-    padding:11px 12px;
-    border:1px solid rgba(148,163,184,.19);
-    border-radius:11px;
-    outline:none;
-    color:var(--text);
-    background:rgba(15,23,42,.76);
-}
-
-input:focus{
-    border-color:rgba(56,189,248,.72);
-    box-shadow:0 0 0 4px rgba(56,189,248,.09);
-}
-
-input[type="file"]::file-selector-button{
-    margin-right:10px;
-    padding:8px 10px;
-    border:none;
-    border-radius:8px;
-    color:#e0f2fe;
-    background:rgba(14,165,233,.2);
-    font-weight:800;
-}
-
-.primary-btn{
-    width:100%;
-    min-height:48px;
-    border:none;
-    border-radius:12px;
-    color:white;
-    font-weight:900;
-    background:linear-gradient(135deg,var(--primary),var(--primary2));
-    box-shadow:0 12px 28px rgba(2,132,199,.22);
-}
-
-.primary-btn:disabled{
-    cursor:not-allowed;
-    opacity:.56;
-}
-
-.progress-box{
-    display:none;
-    margin-top:14px;
-    padding:13px;
-    border:1px solid rgba(56,189,248,.15);
-    border-radius:13px;
-    background:rgba(15,23,42,.48);
-}
-
-.progress-head{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    margin-bottom:8px;
-    font-size:12px;
-    font-weight:800;
-}
-
-.progress-track{
-    height:12px;
-    overflow:hidden;
-    border-radius:999px;
-    background:rgba(148,163,184,.13);
-}
-
-.progress-bar{
-    width:0%;
-    height:100%;
-    border-radius:inherit;
-    background:linear-gradient(90deg,#0ea5e9,#38bdf8,#22c55e);
-    transition:width .3s ease;
-}
-
-.progress-box.indeterminate .progress-bar{
-    width:38%;
-    animation:slide 1.15s ease-in-out infinite;
-}
-
-@keyframes slide{
-    0%{transform:translateX(-115%)}
-    100%{transform:translateX(300%)}
-}
-
-.message{
-    display:none;
-    margin-top:12px;
-    padding:12px;
-    border-radius:12px;
-    font-size:12px;
-    line-height:1.5;
-    white-space:pre-wrap;
-    word-break:break-word;
-}
-
-.msg-info{display:block;color:#dbeafe;background:rgba(56,189,248,.09);border:1px solid rgba(56,189,248,.2)}
-.msg-success{display:block;color:#dcfce7;background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.22)}
-.msg-error{display:block;color:#fee2e2;background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.22)}
-
-.activity{
-    margin-top:18px;
-}
-
-.log{
-    max-height:220px;
-    overflow:auto;
-    padding:11px;
-    border-radius:12px;
-    border:1px solid rgba(148,163,184,.10);
-    background:rgba(4,10,20,.58);
-    font-family:Consolas,"Courier New",monospace;
-}
-
-.log-item{
-    display:grid;
-    grid-template-columns:72px 1fr;
-    gap:9px;
-    padding:7px 2px;
-    border-bottom:1px dashed rgba(148,163,184,.09);
-    font-size:11px;
-}
-
-.log-time{color:#64748b}
-.log-info{color:#bae6fd}
-.log-success{color:#86efac}
-.log-error{color:#fca5a5}
-
-.footer{
-    margin-top:22px;
-    text-align:center;
-    color:#64748b;
-    font-size:12px;
-}
-
-@media(max-width:1050px){
-    .layout{grid-template-columns:1fr}
-    .details{position:static}
-}
-
-@media(max-width:760px){
-    .topbar{align-items:flex-start;flex-direction:column}
-    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .panel-header{align-items:stretch;flex-direction:column}
-    .toolbar{width:100%}
-    .search{min-width:0;flex:1}
-}
-
-@media(max-width:480px){
-    .app{width:min(100% - 18px,1440px);padding-top:12px}
-    .stats{grid-template-columns:1fr 1fr;gap:9px}
-    .stat-card{padding:14px}
-    .stat-value{font-size:25px}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Wash Fleet OTA</title>
+
+    <style>
+        :root {
+            --bg: #07111f;
+            --bg2: #0c1728;
+            --panel: rgba(17, 31, 52, .92);
+            --panel2: rgba(12, 24, 42, .78);
+            --line: rgba(148, 163, 184, .16);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary2: #0284c7;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --offline: #64748b;
+            --shadow: 0 22px 60px rgba(0, 0, 0, .28);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 10% 8%, rgba(14, 165, 233, .15), transparent 28%),
+                radial-gradient(circle at 90% 88%, rgba(34, 197, 94, .09), transparent 30%),
+                linear-gradient(145deg, var(--bg), var(--bg2));
+        }
+
+        button,
+        input {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        .app {
+            width: min(1440px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 22px 0 42px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 54px;
+            height: 54px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            border: 1px solid rgba(56, 189, 248, .34);
+            background: linear-gradient(145deg, rgba(56, 189, 248, .23), rgba(14, 165, 233, .05));
+            font-size: 28px;
+            box-shadow: 0 12px 36px rgba(14, 165, 233, .15);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(22px, 3vw, 31px);
+            letter-spacing: -.03em;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .cloud-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 197, 94, .24);
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, .09);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .cloud-pill::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 12px rgba(34, 197, 94, .8);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 800;
+        }
+
+        .stat-value {
+            margin-top: 8px;
+            font-size: 30px;
+            font-weight: 900;
+            letter-spacing: -.04em;
+        }
+
+        .stat-note {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.38fr) minmax(360px, .82fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-header h2,
+        .panel-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .panel-header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search {
+            min-width: 230px;
+            padding: 10px 12px;
+            border: 1px solid rgba(148, 163, 184, .19);
+            border-radius: 11px;
+            outline: none;
+            color: var(--text);
+            background: rgba(15, 23, 42, .75);
+        }
+
+        .search:focus {
+            border-color: rgba(56, 189, 248, .7);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, .09);
+        }
+
+        .small-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #e0f2fe;
+            font-weight: 800;
+            background: rgba(14, 165, 233, .18);
+        }
+
+        .table-wrap {
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 830px;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 13px 15px;
+            text-align: left;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            border-bottom: 1px solid var(--line);
+            background: rgba(8, 17, 31, .44);
+        }
+
+        td {
+            padding: 14px 15px;
+            border-bottom: 1px solid rgba(148, 163, 184, .10);
+            font-size: 13px;
+        }
+
+        tbody tr {
+            transition: background .18s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(56, 189, 248, .045);
+        }
+
+        tbody tr.selected {
+            background: rgba(56, 189, 248, .09);
+        }
+
+        .machine-id {
+            color: #bae6fd;
+            font-family: Consolas, "Courier New", monospace;
+            font-weight: 850;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .badge::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .online {
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, .11)
+        }
+
+        .online::before {
+            background: var(--success);
+            box-shadow: 0 0 9px rgba(34, 197, 94, .7)
+        }
+
+        .offline {
+            color: #fecaca;
+            background: rgba(239, 68, 68, .11)
+        }
+
+        .offline::before {
+            background: var(--danger)
+        }
+
+        .updating {
+            color: #bae6fd;
+            background: rgba(56, 189, 248, .11)
+        }
+
+        .updating::before {
+            background: var(--primary);
+            box-shadow: 0 0 9px rgba(56, 189, 248, .7)
+        }
+
+        .unknown {
+            color: #cbd5e1;
+            background: rgba(100, 116, 139, .14)
+        }
+
+        .unknown::before {
+            background: var(--offline)
+        }
+
+        .select-btn {
+            border: none;
+            border-radius: 9px;
+            padding: 8px 11px;
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary2));
+        }
+
+        .empty-state {
+            padding: 34px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .details {
+            position: sticky;
+            top: 16px;
+        }
+
+        .detail-body {
+            padding: 20px;
+        }
+
+        .device-hero {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid rgba(148, 163, 184, .13);
+            border-radius: 15px;
+            background: rgba(15, 23, 42, .48);
+        }
+
+        .device-icon {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            border-radius: 15px;
+            font-size: 26px;
+            background: rgba(56, 189, 248, .12);
+        }
+
+        .device-title {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .device-code {
+            color: var(--primary);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 9px;
+            margin-top: 14px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 11px 12px;
+            border-radius: 11px;
+            border: 1px solid rgba(148, 163, 184, .09);
+            background: rgba(15, 23, 42, .35);
+        }
+
+        .info-label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .info-value {
+            max-width: 65%;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .divider {
+            height: 1px;
+            margin: 18px 0;
+            background: var(--line);
+        }
+
+        .section-title {
+            margin: 0 0 12px;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            min-height: 44px;
+            padding: 11px 12px;
+            border: 1px solid rgba(148, 163, 184, .19);
+            border-radius: 11px;
+            outline: none;
+            color: var(--text);
+            background: rgba(15, 23, 42, .76);
+        }
+
+        input:focus {
+            border-color: rgba(56, 189, 248, .72);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, .09);
+        }
+
+        input[type="file"]::file-selector-button {
+            margin-right: 10px;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 8px;
+            color: #e0f2fe;
+            background: rgba(14, 165, 233, .2);
+            font-weight: 800;
+        }
+
+        .primary-btn {
+            width: 100%;
+            min-height: 48px;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--primary2));
+            box-shadow: 0 12px 28px rgba(2, 132, 199, .22);
+        }
+
+        .primary-btn:disabled {
+            cursor: not-allowed;
+            opacity: .56;
+        }
+
+        .progress-box {
+            display: none;
+            margin-top: 14px;
+            padding: 13px;
+            border: 1px solid rgba(56, 189, 248, .15);
+            border-radius: 13px;
+            background: rgba(15, 23, 42, .48);
+        }
+
+        .progress-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .progress-track {
+            height: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, .13);
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0ea5e9, #38bdf8, #22c55e);
+            transition: width .3s ease;
+        }
+
+        .progress-box.indeterminate .progress-bar {
+            width: 38%;
+            animation: slide 1.15s ease-in-out infinite;
+        }
+
+        @keyframes slide {
+            0% {
+                transform: translateX(-115%)
+            }
+
+            100% {
+                transform: translateX(300%)
+            }
+        }
+
+        .message {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .msg-info {
+            display: block;
+            color: #dbeafe;
+            background: rgba(56, 189, 248, .09);
+            border: 1px solid rgba(56, 189, 248, .2)
+        }
+
+        .msg-success {
+            display: block;
+            color: #dcfce7;
+            background: rgba(34, 197, 94, .09);
+            border: 1px solid rgba(34, 197, 94, .22)
+        }
+
+        .msg-error {
+            display: block;
+            color: #fee2e2;
+            background: rgba(239, 68, 68, .09);
+            border: 1px solid rgba(239, 68, 68, .22)
+        }
+
+        .activity {
+            margin-top: 18px;
+        }
+
+        .log {
+            max-height: 220px;
+            overflow: auto;
+            padding: 11px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, .10);
+            background: rgba(4, 10, 20, .58);
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .log-item {
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 9px;
+            padding: 7px 2px;
+            border-bottom: 1px dashed rgba(148, 163, 184, .09);
+            font-size: 11px;
+        }
+
+        .log-time {
+            color: #64748b
+        }
+
+        .log-info {
+            color: #bae6fd
+        }
+
+        .log-success {
+            color: #86efac
+        }
+
+        .log-error {
+            color: #fca5a5
+        }
+
+        .footer {
+            margin-top: 22px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        @media(max-width:1050px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .details {
+                position: static
+            }
+        }
+
+        @media(max-width:760px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+
+            .panel-header {
+                align-items: stretch;
+                flex-direction: column
+            }
+
+            .toolbar {
+                width: 100%
+            }
+
+            .search {
+                min-width: 0;
+                flex: 1
+            }
+        }
+
+        @media(max-width:480px) {
+            .app {
+                width: min(100% - 18px, 1440px);
+                padding-top: 12px
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 9px
+            }
+
+            .stat-card {
+                padding: 14px
+            }
+
+            .stat-value {
+                font-size: 25px
+            }
+        }
+    </style>
 </head>
 
 <body>
-<div class="app">
+    <div class="app">
 
-    <header class="topbar">
-        <div class="brand">
-            <div class="logo">🐶</div>
-            <div>
-                <h1>Dog Wash Fleet OTA</h1>
-                <p>Quản lý nhiều thiết bị, trạng thái kết nối và cập nhật firmware</p>
-            </div>
-        </div>
-
-        <div class="cloud-pill">Cloud Server Online</div>
-    </header>
-
-    <section class="stats">
-        <div class="stat-card">
-            <div class="stat-label">Tổng thiết bị</div>
-            <div id="totalCount" class="stat-value">0</div>
-            <div class="stat-note">Đã từng gửi trạng thái</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-label">Đang online</div>
-            <div id="onlineCount" class="stat-value">0</div>
-            <div class="stat-note">Phản hồi trong 15 giây</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-label">Đang offline</div>
-            <div id="offlineCount" class="stat-value">0</div>
-            <div class="stat-note">Quá thời gian phản hồi</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-label">Đang cập nhật</div>
-            <div id="updatingCount" class="stat-value">0</div>
-            <div class="stat-note">OTA đang thực hiện</div>
-        </div>
-    </section>
-
-    <main class="layout">
-
-        <section class="panel">
-            <div class="panel-header">
+        <header class="topbar">
+            <div class="brand">
+                <div class="logo">🐶</div>
                 <div>
-                    <h2>Danh sách thiết bị</h2>
-                    <p>Chọn một máy để xem chi tiết và cập nhật firmware</p>
-                </div>
-
-                <div class="toolbar">
-                    <input
-                        id="searchInput"
-                        class="search"
-                        type="text"
-                        placeholder="Tìm Machine ID..."
-                    >
-                    <button id="refreshButton" class="small-btn" type="button">
-                        Làm mới
-                    </button>
+                    <h1>Dog Wash Fleet OTA</h1>
+                    <p>Quản lý nhiều thiết bị, trạng thái kết nối và cập nhật firmware</p>
                 </div>
             </div>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Machine ID</th>
-                            <th>Firmware</th>
-                            <th>Kết nối</th>
-                            <th>Trạng thái OTA</th>
-                            <th>Phản hồi cuối</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
+            <div class="cloud-pill">Cloud Server Online</div>
+        </header>
 
-                    <tbody id="machineTableBody">
-                        <tr>
-                            <td colspan="6">
-                                <div class="empty-state">
-                                    Đang tải danh sách thiết bị...
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Tổng thiết bị</div>
+                <div id="totalCount" class="stat-value">0</div>
+                <div class="stat-note">Đã từng gửi trạng thái</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Đang online</div>
+                <div id="onlineCount" class="stat-value">0</div>
+                <div class="stat-note">Phản hồi trong 15 giây</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Đang offline</div>
+                <div id="offlineCount" class="stat-value">0</div>
+                <div class="stat-note">Quá thời gian phản hồi</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Đang cập nhật</div>
+                <div id="updatingCount" class="stat-value">0</div>
+                <div class="stat-note">OTA đang thực hiện</div>
             </div>
         </section>
 
-        <aside class="panel details">
-            <div class="panel-header">
-                <div>
-                    <h3>Chi tiết thiết bị</h3>
-                    <p id="detailHint">Chọn một máy trong danh sách</p>
-                </div>
-                <span id="detailBadge" class="badge unknown">Chưa chọn</span>
-            </div>
+        <main class="layout">
 
-            <div class="detail-body">
-                <div class="device-hero">
-                    <div class="device-icon">⚙️</div>
+            <section class="panel">
+                <div class="panel-header">
                     <div>
-                        <div class="device-title">Dog Wash Machine</div>
-                        <div id="detailMachineId" class="device-code">—</div>
-                    </div>
-                </div>
-
-                <div class="info-grid">
-                    <div class="info-row">
-                        <span class="info-label">Firmware</span>
-                        <span id="detailVersion" class="info-value">—</span>
+                        <h2>Danh sách thiết bị</h2>
+                        <p>Chọn một máy để xem chi tiết và cập nhật firmware</p>
                     </div>
 
-                    <div class="info-row">
-                        <span class="info-label">Trạng thái OTA</span>
-                        <span id="detailOtaStatus" class="info-value">—</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Phản hồi cuối</span>
-                        <span id="detailLastSeen" class="info-value">—</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">MQTT topic OTA</span>
-                        <span id="detailTopic" class="info-value">—</span>
+                    <div class="toolbar">
+                        <input id="searchInput" class="search" type="text" placeholder="Tìm Machine ID...">
+                        <button id="refreshButton" class="small-btn" type="button">
+                            Làm mới
+                        </button>
                     </div>
                 </div>
 
-                <div class="divider"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Machine ID</th>
+                                <th>Firmware</th>
+                                <th>Kết nối</th>
+                                <th>Trạng thái OTA</th>
+                                <th>Phản hồi cuối</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
 
-                <h4 class="section-title">Cập nhật firmware</h4>
+                        <tbody id="machineTableBody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        Đang tải danh sách thiết bị...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-                <form id="otaForm" class="form-grid">
+            <aside class="panel details">
+                <div class="panel-header">
                     <div>
-                        <label for="machineId">Machine ID</label>
-                        <input
-                            id="machineId"
-                            name="machineId"
-                            type="text"
-                            readonly
-                            required
-                        >
+                        <h3>Chi tiết thiết bị</h3>
+                        <p id="detailHint">Chọn một máy trong danh sách</p>
                     </div>
-
-                    <div>
-                        <label for="version">Phiên bản mới</label>
-                        <input
-                            id="version"
-                            name="version"
-                            type="text"
-                            placeholder="Ví dụ: 1.0.12"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="firmware">Firmware (.bin)</label>
-                        <input
-                            id="firmware"
-                            name="firmware"
-                            type="file"
-                            accept=".bin"
-                            required
-                        >
-                    </div>
-
-                    <button id="updateButton" class="primary-btn" type="submit" disabled>
-                        UPDATE FIRMWARE
-                    </button>
-                </form>
-
-                <div id="progressBox" class="progress-box">
-                    <div class="progress-head">
-                        <span id="progressLabel">Đang chuẩn bị...</span>
-                        <span id="progressPercent">—</span>
-                    </div>
-                    <div class="progress-track">
-                        <div id="progressBar" class="progress-bar"></div>
-                    </div>
+                    <span id="detailBadge" class="badge unknown">Chưa chọn</span>
                 </div>
 
-                <div id="messageBox" class="message"></div>
+                <div class="detail-body">
+                    <div class="device-hero">
+                        <div class="device-icon">⚙️</div>
+                        <div>
+                            <div class="device-title">Dog Wash Machine</div>
+                            <div id="detailMachineId" class="device-code">—</div>
+                        </div>
+                    </div>
 
-                <div class="activity">
-                    <h4 class="section-title">Nhật ký thao tác</h4>
-                    <div id="logBox" class="log">
-                        <div style="color:#64748b;text-align:center;padding:8px;">
-                            Chưa có hoạt động.
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <span class="info-label">Firmware</span>
+                            <span id="detailVersion" class="info-value">—</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Trạng thái OTA</span>
+                            <span id="detailOtaStatus" class="info-value">—</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Phản hồi cuối</span>
+                            <span id="detailLastSeen" class="info-value">—</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">MQTT topic OTA</span>
+                            <span id="detailTopic" class="info-value">—</span>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h4 class="section-title">Cập nhật firmware</h4>
+
+                    <form id="otaForm" class="form-grid">
+                        <div>
+                            <label for="machineId">Machine ID</label>
+                            <input id="machineId" name="machineId" type="text" readonly required>
+                        </div>
+
+                        <div>
+                            <label for="version">Phiên bản mới</label>
+                            <input id="version" name="version" type="text" placeholder="Ví dụ: 1.0.12" required>
+                        </div>
+
+                        <div>
+                            <label for="firmware">Firmware (.bin)</label>
+                            <input id="firmware" name="firmware" type="file" accept=".bin" required>
+                        </div>
+
+                        <button id="updateButton" class="primary-btn" type="submit" disabled>
+                            UPDATE FIRMWARE
+                        </button>
+                    </form>
+
+                    <div id="progressBox" class="progress-box">
+                        <div class="progress-head">
+                            <span id="progressLabel">Đang chuẩn bị...</span>
+                            <span id="progressPercent">—</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="progressBar" class="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <div id="messageBox" class="message"></div>
+
+                    <div class="activity">
+                        <h4 class="section-title">Nhật ký thao tác</h4>
+                        <div id="logBox" class="log">
+                            <div style="color:#64748b;text-align:center;padding:8px;">
+                                Chưa có hoạt động.
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </aside>
+            </aside>
 
-    </main>
+        </main>
 
-    <footer class="footer">
-        Dog Wash Fleet OTA · Render + MQTT + ESP32
-    </footer>
-</div>
+        <footer class="footer">
+            Dog Wash Fleet OTA · Render + MQTT + ESP32
+        </footer>
+    </div>
 
-<script>
-const OFFLINE_TIMEOUT_MS = 15000;
+    <script>
+        const OFFLINE_TIMEOUT_MS = 15000;
 
-const totalCount = document.getElementById("totalCount");
-const onlineCount = document.getElementById("onlineCount");
-const offlineCount = document.getElementById("offlineCount");
-const updatingCount = document.getElementById("updatingCount");
+        const totalCount = document.getElementById("totalCount");
+        const onlineCount = document.getElementById("onlineCount");
+        const offlineCount = document.getElementById("offlineCount");
+        const updatingCount = document.getElementById("updatingCount");
 
-const machineTableBody = document.getElementById("machineTableBody");
-const searchInput = document.getElementById("searchInput");
-const refreshButton = document.getElementById("refreshButton");
+        const machineTableBody = document.getElementById("machineTableBody");
+        const searchInput = document.getElementById("searchInput");
+        const refreshButton = document.getElementById("refreshButton");
 
-const detailBadge = document.getElementById("detailBadge");
-const detailHint = document.getElementById("detailHint");
-const detailMachineId = document.getElementById("detailMachineId");
-const detailVersion = document.getElementById("detailVersion");
-const detailOtaStatus = document.getElementById("detailOtaStatus");
-const detailLastSeen = document.getElementById("detailLastSeen");
-const detailTopic = document.getElementById("detailTopic");
+        const detailBadge = document.getElementById("detailBadge");
+        const detailHint = document.getElementById("detailHint");
+        const detailMachineId = document.getElementById("detailMachineId");
+        const detailVersion = document.getElementById("detailVersion");
+        const detailOtaStatus = document.getElementById("detailOtaStatus");
+        const detailLastSeen = document.getElementById("detailLastSeen");
+        const detailTopic = document.getElementById("detailTopic");
 
-const otaForm = document.getElementById("otaForm");
-const machineIdInput = document.getElementById("machineId");
-const versionInput = document.getElementById("version");
-const firmwareInput = document.getElementById("firmware");
-const updateButton = document.getElementById("updateButton");
+        const otaForm = document.getElementById("otaForm");
+        const machineIdInput = document.getElementById("machineId");
+        const versionInput = document.getElementById("version");
+        const firmwareInput = document.getElementById("firmware");
+        const updateButton = document.getElementById("updateButton");
 
-const progressBox = document.getElementById("progressBox");
-const progressLabel = document.getElementById("progressLabel");
-const progressPercent = document.getElementById("progressPercent");
-const progressBar = document.getElementById("progressBar");
+        const progressBox = document.getElementById("progressBox");
+        const progressLabel = document.getElementById("progressLabel");
+        const progressPercent = document.getElementById("progressPercent");
+        const progressBar = document.getElementById("progressBar");
 
-const messageBox = document.getElementById("messageBox");
-const logBox = document.getElementById("logBox");
+        const messageBox = document.getElementById("messageBox");
+        const logBox = document.getElementById("logBox");
 
-let machines = [];
-let selectedMachineId = "";
-let pollToken = 0;
-let hasLog = false;
+        let machines = [];
+        let selectedMachineId = "";
+        let pollToken = 0;
+        let hasLog = false;
 
-function escapeHtml(value){
-    return String(value ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-}
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
 
-function getAgeMs(machine){
-    if(Number.isFinite(Number(machine.ageMs))){
-        return Number(machine.ageMs);
-    }
+        function getAgeMs(machine) {
+            if (Number.isFinite(Number(machine.ageMs))) {
+                return Number(machine.ageMs);
+            }
 
-    const time = new Date(machine.updatedAt || "").getTime();
+            const time = new Date(machine.updatedAt || "").getTime();
 
-    if(!Number.isFinite(time)){
-        return Number.POSITIVE_INFINITY;
-    }
+            if (!Number.isFinite(time)) {
+                return Number.POSITIVE_INFINITY;
+            }
 
-    return Math.max(0,Date.now()-time);
-}
+            return Math.max(0, Date.now() - time);
+        }
 
-function isMachineOnline(machine){
-    if(typeof machine.isOnline === "boolean"){
-        return machine.isOnline;
-    }
+        function isMachineOnline(machine) {
+            if (typeof machine.isOnline === "boolean") {
+                return machine.isOnline;
+            }
 
-    return getAgeMs(machine) <= OFFLINE_TIMEOUT_MS;
-}
+            return getAgeMs(machine) <= OFFLINE_TIMEOUT_MS;
+        }
 
-function formatLastSeen(value){
-    if(!value) return "—";
+        function formatLastSeen(value) {
+            if (!value) return "—";
 
-    const time = new Date(value).getTime();
-    if(!Number.isFinite(time)) return "—";
+            const time = new Date(value).getTime();
+            if (!Number.isFinite(time)) return "—";
 
-    const seconds = Math.max(0,Math.floor((Date.now()-time)/1000));
+            const seconds = Math.max(0, Math.floor((Date.now() - time) / 1000));
 
-    if(seconds < 5) return "Vừa xong";
-    if(seconds < 60) return seconds + " giây trước";
+            if (seconds < 5) return "Vừa xong";
+            if (seconds < 60) return seconds + " giây trước";
 
-    const minutes = Math.floor(seconds/60);
-    if(minutes < 60) return minutes + " phút trước";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + " phút trước";
 
-    return new Date(value).toLocaleString("vi-VN");
-}
+            return new Date(value).toLocaleString("vi-VN");
+        }
 
-function getConnectionBadge(machine){
-    if(!isMachineOnline(machine)){
-        return {className:"offline",text:"Offline"};
-    }
+        function getConnectionBadge(machine) {
+            if (!isMachineOnline(machine)) {
+                return { className: "offline", text: "Offline" };
+            }
 
-    if(machine.status === "updating" || machine.status === "command_sent"){
-        return {className:"updating",text:"Đang cập nhật"};
-    }
+            if (machine.status === "updating" || machine.status === "command_sent") {
+                return { className: "updating", text: "Đang cập nhật" };
+            }
 
-    return {className:"online",text:"Online"};
-}
+            return { className: "online", text: "Online" };
+        }
 
-function setDetailBadge(machine){
-    if(!machine){
-        detailBadge.className = "badge unknown";
-        detailBadge.textContent = "Chưa chọn";
-        return;
-    }
+        function setDetailBadge(machine) {
+            if (!machine) {
+                detailBadge.className = "badge unknown";
+                detailBadge.textContent = "Chưa chọn";
+                return;
+            }
 
-    const badge = getConnectionBadge(machine);
-    detailBadge.className = "badge " + badge.className;
-    detailBadge.textContent = badge.text;
-}
+            const badge = getConnectionBadge(machine);
+            detailBadge.className = "badge " + badge.className;
+            detailBadge.textContent = badge.text;
+        }
 
-function renderStats(){
-    const online = machines.filter(isMachineOnline).length;
-    const offline = machines.length - online;
-    const updating = machines.filter(machine =>
-        machine.status === "updating" ||
-        machine.status === "command_sent"
-    ).length;
+        function renderStats() {
+            const online = machines.filter(isMachineOnline).length;
+            const offline = machines.length - online;
+            const updating = machines.filter(machine =>
+                machine.status === "updating" ||
+                machine.status === "command_sent"
+            ).length;
 
-    totalCount.textContent = machines.length;
-    onlineCount.textContent = online;
-    offlineCount.textContent = offline;
-    updatingCount.textContent = updating;
-}
+            totalCount.textContent = machines.length;
+            onlineCount.textContent = online;
+            offlineCount.textContent = offline;
+            updatingCount.textContent = updating;
+        }
 
-function renderMachineTable(){
-    const keyword = searchInput.value.trim().toUpperCase();
+        function renderMachineTable() {
+            const keyword = searchInput.value.trim().toUpperCase();
 
-    const filtered = machines.filter(machine =>
-        String(machine.machineId || "")
-            .toUpperCase()
-            .includes(keyword)
-    );
+            const filtered = machines.filter(machine =>
+                String(machine.machineId || "")
+                    .toUpperCase()
+                    .includes(keyword)
+            );
 
-    if(!filtered.length){
-        machineTableBody.innerHTML = `
+            if (!filtered.length) {
+                machineTableBody.innerHTML = `
             <tr>
                 <td colspan="6">
                     <div class="empty-state">
@@ -899,17 +982,17 @@ function renderMachineTable(){
                 </td>
             </tr>
         `;
-        return;
-    }
+                return;
+            }
 
-    machineTableBody.innerHTML = filtered.map(machine => {
-        const badge = getConnectionBadge(machine);
-        const selectedClass =
-            machine.machineId === selectedMachineId
-                ? "selected"
-                : "";
+            machineTableBody.innerHTML = filtered.map(machine => {
+                const badge = getConnectionBadge(machine);
+                const selectedClass =
+                    machine.machineId === selectedMachineId
+                        ? "selected"
+                        : "";
 
-        return `
+                return `
             <tr class="${selectedClass}">
                 <td>
                     <span class="machine-id">
@@ -935,106 +1018,106 @@ function renderMachineTable(){
                 </td>
             </tr>
         `;
-    }).join("");
+            }).join("");
 
-    machineTableBody.querySelectorAll("[data-machine]").forEach(button => {
-        button.addEventListener("click", () => {
-            selectMachine(button.dataset.machine);
-        });
-    });
-}
+            machineTableBody.querySelectorAll("[data-machine]").forEach(button => {
+                button.addEventListener("click", () => {
+                    selectMachine(button.dataset.machine);
+                });
+            });
+        }
 
-function renderSelectedMachine(){
-    const machine = machines.find(item =>
-        item.machineId === selectedMachineId
-    );
+        function renderSelectedMachine() {
+            const machine = machines.find(item =>
+                item.machineId === selectedMachineId
+            );
 
-    if(!machine){
-        selectedMachineId = "";
-        machineIdInput.value = "";
-        updateButton.disabled = true;
+            if (!machine) {
+                selectedMachineId = "";
+                machineIdInput.value = "";
+                updateButton.disabled = true;
 
-        detailMachineId.textContent = "—";
-        detailVersion.textContent = "—";
-        detailOtaStatus.textContent = "—";
-        detailLastSeen.textContent = "—";
-        detailTopic.textContent = "—";
-        detailHint.textContent = "Chọn một máy trong danh sách";
-        setDetailBadge(null);
-        return;
-    }
+                detailMachineId.textContent = "—";
+                detailVersion.textContent = "—";
+                detailOtaStatus.textContent = "—";
+                detailLastSeen.textContent = "—";
+                detailTopic.textContent = "—";
+                detailHint.textContent = "Chọn một máy trong danh sách";
+                setDetailBadge(null);
+                return;
+            }
 
-    machineIdInput.value = machine.machineId;
-    updateButton.disabled = false;
+            machineIdInput.value = machine.machineId;
+            updateButton.disabled = false;
 
-    detailMachineId.textContent = machine.machineId;
-    detailVersion.textContent = machine.version || "Chưa xác định";
-    detailOtaStatus.textContent =
-        machine.message || machine.status || "—";
-    detailLastSeen.textContent = formatLastSeen(machine.updatedAt);
-    detailTopic.textContent =
-        "wash/" + machine.machineId + "/ota";
-    detailHint.textContent = "Thiết bị đang được chọn";
+            detailMachineId.textContent = machine.machineId;
+            detailVersion.textContent = machine.version || "Chưa xác định";
+            detailOtaStatus.textContent =
+                machine.message || machine.status || "—";
+            detailLastSeen.textContent = formatLastSeen(machine.updatedAt);
+            detailTopic.textContent =
+                "wash/" + machine.machineId + "/ota";
+            detailHint.textContent = "Thiết bị đang được chọn";
 
-    setDetailBadge(machine);
-}
+            setDetailBadge(machine);
+        }
 
-function selectMachine(machineId){
-    selectedMachineId = String(machineId || "").toUpperCase();
-    renderMachineTable();
-    renderSelectedMachine();
+        function selectMachine(machineId) {
+            selectedMachineId = String(machineId || "").toUpperCase();
+            renderMachineTable();
+            renderSelectedMachine();
 
-    if(window.innerWidth < 1050){
-        document.querySelector(".details").scrollIntoView({
-            behavior:"smooth",
-            block:"start"
-        });
-    }
-}
+            if (window.innerWidth < 1050) {
+                document.querySelector(".details").scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        }
 
-async function fetchJson(url,options={}){
-    const response = await fetch(url,{
-        cache:"no-store",
-        headers:{
-            "Cache-Control":"no-cache",
-            ...(options.headers || {})
-        },
-        ...options
-    });
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache",
+                    ...(options.headers || {})
+                },
+                ...options
+            });
 
-    const text = await response.text();
+            const text = await response.text();
 
-    let data;
-    try{
-        data = JSON.parse(text);
-    }
-    catch{
-        throw new Error("Server không trả về JSON hợp lệ.");
-    }
+            let data;
+            try {
+                data = JSON.parse(text);
+            }
+            catch {
+                throw new Error("Server không trả về JSON hợp lệ.");
+            }
 
-    if(!response.ok || data.success === false){
-        throw new Error(data.message || "Yêu cầu thất bại.");
-    }
+            if (!response.ok || data.success === false) {
+                throw new Error(data.message || "Yêu cầu thất bại.");
+            }
 
-    return data;
-}
+            return data;
+        }
 
-async function refreshMachines(){
-    try{
-        const data = await fetchJson(
-            "/api/machines?time=" + Date.now()
-        );
+        async function refreshMachines() {
+            try {
+                const data = await fetchJson(
+                    "/api/machines?time=" + Date.now()
+                );
 
-        machines = Array.isArray(data.machines)
-            ? data.machines
-            : [];
+                machines = Array.isArray(data.machines)
+                    ? data.machines
+                    : [];
 
-        renderStats();
-        renderMachineTable();
-        renderSelectedMachine();
-    }
-    catch(error){
-        machineTableBody.innerHTML = `
+                renderStats();
+                renderMachineTable();
+                renderSelectedMachine();
+            }
+            catch (error) {
+                machineTableBody.innerHTML = `
             <tr>
                 <td colspan="6">
                     <div class="empty-state">
@@ -1044,266 +1127,292 @@ async function refreshMachines(){
                 </td>
             </tr>
         `;
-        console.error(error);
-    }
-}
+                console.error(error);
+            }
+        }
 
-function setMessage(message,type){
-    messageBox.className = "message msg-" + type;
-    messageBox.textContent = message;
-}
+        function setMessage(message, type) {
+            messageBox.className = "message msg-" + type;
+            messageBox.textContent = message;
+        }
 
-function hideMessage(){
-    messageBox.className = "message";
-    messageBox.textContent = "";
-}
+        function hideMessage() {
+            messageBox.className = "message";
+            messageBox.textContent = "";
+        }
 
-function setIndeterminateProgress(label){
-    progressBox.style.display = "block";
-    progressBox.classList.add("indeterminate");
-    progressLabel.textContent = label;
-    progressPercent.textContent = "Đang xử lý";
-    progressBar.style.width = "38%";
-}
+        function setIndeterminateProgress(label) {
+            progressBox.style.display = "block";
+            progressBox.classList.add("indeterminate");
+            progressLabel.textContent = label;
+            progressPercent.textContent = "Đang xử lý";
+            progressBar.style.width = "38%";
+        }
 
-function setProgress(value,label){
-    const percent = Math.max(0,Math.min(100,Number(value)||0));
+        function setProgress(value, label) {
+            const percent = Math.max(0, Math.min(100, Number(value) || 0));
 
-    progressBox.style.display = "block";
-    progressBox.classList.remove("indeterminate");
-    progressLabel.textContent = label;
-    progressPercent.textContent = percent + "%";
-    progressBar.style.width = percent + "%";
-}
+            progressBox.style.display = "block";
+            progressBox.classList.remove("indeterminate");
+            progressLabel.textContent = label;
+            progressPercent.textContent = percent + "%";
+            progressBar.style.width = percent + "%";
+        }
 
-function hideProgress(){
-    progressBox.style.display = "none";
-    progressBox.classList.remove("indeterminate");
-    progressBar.style.width = "0%";
-    progressPercent.textContent = "—";
-}
+        function hideProgress() {
+            progressBox.style.display = "none";
+            progressBox.classList.remove("indeterminate");
+            progressBar.style.width = "0%";
+            progressPercent.textContent = "—";
+        }
 
-function addLog(message,type="info"){
-    if(!hasLog){
-        logBox.innerHTML = "";
-        hasLog = true;
-    }
+        function addLog(message, type = "info") {
+            if (!hasLog) {
+                logBox.innerHTML = "";
+                hasLog = true;
+            }
 
-    const item = document.createElement("div");
-    item.className = "log-item";
+            const item = document.createElement("div");
+            item.className = "log-item";
 
-    item.innerHTML = `
+            item.innerHTML = `
         <span class="log-time">
             ${new Date().toLocaleTimeString("vi-VN")}
         </span>
         <span class="log-${type}"></span>
     `;
 
-    item.querySelector(".log-" + type).textContent = message;
+            item.querySelector(".log-" + type).textContent = message;
 
-    logBox.appendChild(item);
-    logBox.scrollTop = logBox.scrollHeight;
-}
+            logBox.appendChild(item);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
 
-async function watchOta(machineId,targetVersion){
-    const myToken = ++pollToken;
+        async function watchOta(machineId, targetVersion) {
+            const myToken = ++pollToken;
 
-    for(let i=0;i<120;i++){
-        if(myToken !== pollToken) return;
+            for (let i = 0; i < 120; i++) {
+                if (myToken !== pollToken) return;
 
-        await new Promise(resolve => setTimeout(resolve,2000));
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
-        try{
-            const data = await fetchJson(
-                "/api/ota-status/" +
-                encodeURIComponent(machineId) +
-                "?time=" +
-                Date.now()
+                try {
+                    const data = await fetchJson(
+                        "/api/ota-status/" +
+                        encodeURIComponent(machineId) +
+                        "?time=" +
+                        Date.now()
+                    );
+
+                    if (data.found) {
+                        const index = machines.findIndex(machine =>
+                            machine.machineId === machineId
+                        );
+
+                        if (index >= 0) {
+                            machines[index] = {
+                                ...machines[index],
+                                ...data
+                            };
+                        }
+
+                        renderStats();
+                        renderMachineTable();
+                        renderSelectedMachine();
+                    }
+
+                    if (!data.found || data.status === "command_sent") {
+                        setIndeterminateProgress(
+                            "Đang chờ ESP32 nhận lệnh..."
+                        );
+                        continue;
+                    }
+
+                    if (data.status === "updating") {
+                        if (
+                            data.progress !== undefined &&
+                            data.progress !== null
+                        ) {
+                            setProgress(
+                                data.progress,
+                                "ESP32 đang tải và cài firmware..."
+                            );
+                        }
+                        else {
+                            setIndeterminateProgress(
+                                "ESP32 đang tải và cài firmware..."
+                            );
+                        }
+
+                        setMessage(
+                            "ESP32 đang cập nhật firmware " +
+                            (data.version || targetVersion) +
+                            ".",
+                            "info"
+                        );
+
+                        continue;
+                    }
+
+                    if (
+                        data.status === "success" &&
+                        data.version === targetVersion
+                    ) {
+                        setProgress(100, "Cập nhật hoàn tất");
+
+                        setMessage(
+                            "CẬP NHẬT THÀNH CÔNG\n\n" +
+                            "Machine ID: " + machineId +
+                            "\nPhiên bản mới: " + data.version,
+                            "success"
+                        );
+
+                        addLog(
+                            "Firmware " + data.version +
+                            " đã cập nhật thành công.",
+                            "success"
+                        );
+
+                        updateButton.disabled = false;
+                        await refreshMachines();
+                        return;
+                    }
+
+                    if (
+                        data.status === "online" &&
+                        data.version === targetVersion
+                    ) {
+                        setProgress(100, "Cập nhật hoàn tất");
+
+                        setMessage(
+                            "CẬP NHẬT THÀNH CÔNG\n\n" +
+                            "Machine ID: " + machineId +
+                            "\nPhiên bản mới: " + data.version +
+                            "\n\nThiết bị đã khởi động lại và đang online.",
+                            "success"
+                        );
+
+                        addLog(
+                            "Firmware " + data.version +
+                            " đã khởi động và kết nối lại thành công.",
+                            "success"
+                        );
+
+                        updateButton.disabled = false;
+                        await refreshMachines();
+                        return;
+                    }
+
+                    if (
+                        data.status === "failed" ||
+                        data.status === "rejected"
+                    ) {
+                        hideProgress();
+
+                        setMessage(
+                            "CẬP NHẬT THẤT BẠI\n\n" +
+                            (data.message || "Thiết bị từ chối cập nhật."),
+                            "error"
+                        );
+
+                        addLog(
+                            data.message || "OTA thất bại.",
+                            "error"
+                        );
+
+                        updateButton.disabled = false;
+                        await refreshMachines();
+                        return;
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                }
+            }
+
+            hideProgress();
+            setMessage(
+                "Hết thời gian chờ thiết bị xác nhận cập nhật.",
+                "error"
+            );
+            addLog("Hết thời gian chờ OTA.", "error");
+            updateButton.disabled = false;
+        }
+
+        otaForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            hideMessage();
+            hideProgress();
+
+            const machineId = machineIdInput.value.trim().toUpperCase();
+            const version = versionInput.value.trim();
+
+            if (!machineId) {
+                setMessage("Hãy chọn một thiết bị trong danh sách.", "error");
+                return;
+            }
+
+            if (!version) {
+                setMessage("Hãy nhập phiên bản firmware mới.", "error");
+                return;
+            }
+
+            if (!firmwareInput.files.length) {
+                setMessage("Hãy chọn file firmware.bin.", "error");
+                return;
+            }
+
+            const file = firmwareInput.files[0];
+
+            if (!file.name.toLowerCase().endsWith(".bin")) {
+                setMessage("Chỉ chấp nhận file .bin.", "error");
+                return;
+            }
+
+            const formData = new FormData(otaForm);
+
+            updateButton.disabled = true;
+            setIndeterminateProgress("Đang upload firmware lên server...");
+            setMessage("Đang upload firmware và gửi lệnh OTA...", "info");
+            addLog(
+                "Bắt đầu upload firmware " +
+                version + " cho " + machineId + "."
             );
 
-            if(data.found){
-                const index = machines.findIndex(machine =>
-                    machine.machineId === machineId
+            try {
+                const data = await fetchJson("/api/update", {
+                    method: "POST",
+                    body: formData
+                });
+
+                addLog(
+                    "Upload hoàn tất. Lệnh MQTT đã được gửi.",
+                    "success"
                 );
-
-                if(index >= 0){
-                    machines[index] = {
-                        ...machines[index],
-                        ...data
-                    };
-                }
-
-                renderStats();
-                renderMachineTable();
-                renderSelectedMachine();
-            }
-
-            if(!data.found || data.status === "command_sent"){
-                setIndeterminateProgress(
-                    "Đang chờ ESP32 nhận lệnh..."
-                );
-                continue;
-            }
-
-            if(data.status === "updating"){
-                if(
-                    data.progress !== undefined &&
-                    data.progress !== null
-                ){
-                    setProgress(
-                        data.progress,
-                        "ESP32 đang tải và cài firmware..."
-                    );
-                }
-                else{
-                    setIndeterminateProgress(
-                        "ESP32 đang tải và cài firmware..."
-                    );
-                }
 
                 setMessage(
-                    "ESP32 đang cập nhật firmware " +
-                    (data.version || targetVersion) +
-                    ".",
+                    data.message +
+                    "\n\nĐang chờ ESP32 cập nhật...",
                     "info"
                 );
 
-                continue;
+                await watchOta(data.machineId, data.version);
             }
-
-            if(
-                data.status === "success" &&
-                data.version === targetVersion
-            ){
-                setProgress(100,"Cập nhật hoàn tất");
-
-                setMessage(
-                    "CẬP NHẬT THÀNH CÔNG\n\n" +
-                    "Machine ID: " + machineId +
-                    "\nPhiên bản mới: " + data.version,
-                    "success"
-                );
-
-                addLog(
-                    "Firmware " + data.version +
-                    " đã cập nhật thành công.",
-                    "success"
-                );
-
-                updateButton.disabled = false;
-                await refreshMachines();
-                return;
-            }
-
-            if(
-                data.status === "failed" ||
-                data.status === "rejected"
-            ){
+            catch (error) {
                 hideProgress();
-
-                setMessage(
-                    "CẬP NHẬT THẤT BẠI\n\n" +
-                    (data.message || "Thiết bị từ chối cập nhật."),
-                    "error"
-                );
-
-                addLog(
-                    data.message || "OTA thất bại.",
-                    "error"
-                );
-
+                setMessage("Lỗi: " + error.message, "error");
+                addLog("Lỗi upload: " + error.message, "error");
                 updateButton.disabled = false;
-                await refreshMachines();
-                return;
             }
-        }
-        catch(error){
-            console.error(error);
-        }
-    }
-
-    hideProgress();
-    setMessage(
-        "Hết thời gian chờ thiết bị xác nhận cập nhật.",
-        "error"
-    );
-    addLog("Hết thời gian chờ OTA.","error");
-    updateButton.disabled = false;
-}
-
-otaForm.addEventListener("submit",async event => {
-    event.preventDefault();
-
-    hideMessage();
-    hideProgress();
-
-    const machineId = machineIdInput.value.trim().toUpperCase();
-    const version = versionInput.value.trim();
-
-    if(!machineId){
-        setMessage("Hãy chọn một thiết bị trong danh sách.","error");
-        return;
-    }
-
-    if(!version){
-        setMessage("Hãy nhập phiên bản firmware mới.","error");
-        return;
-    }
-
-    if(!firmwareInput.files.length){
-        setMessage("Hãy chọn file firmware.bin.","error");
-        return;
-    }
-
-    const file = firmwareInput.files[0];
-
-    if(!file.name.toLowerCase().endsWith(".bin")){
-        setMessage("Chỉ chấp nhận file .bin.","error");
-        return;
-    }
-
-    const formData = new FormData(otaForm);
-
-    updateButton.disabled = true;
-    setIndeterminateProgress("Đang upload firmware lên server...");
-    setMessage("Đang upload firmware và gửi lệnh OTA...","info");
-    addLog(
-        "Bắt đầu upload firmware " +
-        version + " cho " + machineId + "."
-    );
-
-    try{
-        const data = await fetchJson("/api/update",{
-            method:"POST",
-            body:formData
         });
 
-        addLog(
-            "Upload hoàn tất. Lệnh MQTT đã được gửi.",
-            "success"
-        );
+        searchInput.addEventListener("input", renderMachineTable);
+        refreshButton.addEventListener("click", refreshMachines);
 
-        setMessage(
-            data.message +
-            "\n\nĐang chờ ESP32 cập nhật...",
-            "info"
-        );
-
-        await watchOta(data.machineId,data.version);
-    }
-    catch(error){
-        hideProgress();
-        setMessage("Lỗi: " + error.message,"error");
-        addLog("Lỗi upload: " + error.message,"error");
-        updateButton.disabled = false;
-    }
-});
-
-searchInput.addEventListener("input",renderMachineTable);
-refreshButton.addEventListener("click",refreshMachines);
-
-refreshMachines();
-setInterval(refreshMachines,5000);
-</script>
+        refreshMachines();
+        setInterval(refreshMachines, 5000);
+    </script>
 </body>
+
 </html>
