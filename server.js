@@ -48,7 +48,7 @@ const upload = multer({
     }
 });
 
-///2
+
 
 
 
@@ -58,6 +58,11 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/ota-status/:machineId", (req, res) => {
+    res.set({
+    "Cache-Control": "no-store, no-cache, must-revalidate, private",
+    "Pragma": "no-cache",
+    "Expires": "0"
+});
     const machineId =
         String(req.params.machineId || "")
             .trim()

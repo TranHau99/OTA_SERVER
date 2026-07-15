@@ -130,12 +130,24 @@ function publishOTA(
         });
 
         // Đặt trạng thái chờ ngay khi gửi lệnh
+        const previousState = otaStates[machineId] || {};
+
         otaStates[machineId] = {
+            ...previousState,
+
             machineId: machineId,
             status: "command_sent",
             version: version,
             message: "Đã gửi lệnh OTA đến ESP32",
-            updatedAt: new Date().toISOString()
+            progress: 0,
+
+            // Không xem việc server gửi lệnh là phản hồi mới từ ESP32
+            updatedAt:
+                previousState.updatedAt ||
+                new Date().toISOString(),
+
+            lastSeenMs:
+                previousState.lastSeenMs || 0
         };
 
         client.publish(
@@ -161,8 +173,7 @@ function publishOTA(
     });
 }
 
-function getOTAStatus(machineId)
-{
+function getOTAStatus(machineId) {
     const normalizedId =
         String(machineId)
             .trim()
@@ -170,27 +181,28 @@ function getOTAStatus(machineId)
 
     const state = otaStates[normalizedId];
 
-    if (!state)
-    {
+    if (!state) {
         return null;
     }
 
     const OFFLINE_TIMEOUT_MS = 15000;
 
-    const ageMs =
-        Date.now() - state.lastSeenMs;
+    const lastSeenMs =
+        Number(state.lastSeenMs) ||
+        new Date(state.updatedAt).getTime();
 
-    const isOnline =
-        ageMs <= OFFLINE_TIMEOUT_MS;
+    const ageMs =
+        Number.isFinite(lastSeenMs)
+            ? Math.max(0, Date.now() - lastSeenMs)
+            : Number.POSITIVE_INFINITY;
 
     return {
         ...state,
-        isOnline: isOnline,
-        ageMs: ageMs
+        ageMs: ageMs,
+        isOnline: ageMs <= OFFLINE_TIMEOUT_MS
     };
 }
-function getAllMachines()
-{
+function getAllMachines() {
     const OFFLINE_TIMEOUT_MS = 15000;
     const now = Date.now();
 
@@ -212,8 +224,7 @@ function getAllMachines()
             };
         })
         .sort((a, b) => {
-            if (a.isOnline !== b.isOnline)
-            {
+            if (a.isOnline !== b.isOnline) {
                 return a.isOnline ? -1 : 1;
             }
 
