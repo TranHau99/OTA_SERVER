@@ -16,8 +16,7 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 
 // Tự tạo thư mục uploads nếu chưa tồn tại
-if (!fs.existsSync(UPLOAD_DIR))
-{
+if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
@@ -35,13 +34,11 @@ const upload = multer({
         fileSize: 4 * 1024 * 1024
     },
 
-    fileFilter: function (req, file, callback)
-    {
+    fileFilter: function (req, file, callback) {
         const extension =
             path.extname(file.originalname).toLowerCase();
 
-        if (extension !== ".bin")
-        {
+        if (extension !== ".bin") {
             callback(new Error("Chỉ cho phép file .bin"));
             return;
         }
@@ -67,8 +64,7 @@ app.get("/api/ota-status/:machineId", (req, res) => {
 
     const status = getOTAStatus(machineId);
 
-    if (!status)
-    {
+    if (!status) {
         return res.json({
             success: true,
             found: false,
@@ -81,15 +77,19 @@ app.get("/api/ota-status/:machineId", (req, res) => {
     return res.json({
         success: true,
         found: true,
-        ...status
+        ...status,
+
+        connectionStatus:
+            status.isOnline
+                ? "online"
+                : "offline"
     });
 });
 // API upload firmware và gửi MQTT
 app.post("/api/update", upload.single("firmware"), async (req, res) => {
     let savedFilePath = "";
 
-    try
-    {
+    try {
         const machineId = String(req.body.machineId || "")
             .trim()
             .toUpperCase();
@@ -100,16 +100,14 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
         // ==============================
         // Kiểm tra Machine ID
         // ==============================
-        if (!machineId)
-        {
+        if (!machineId) {
             return res.status(400).json({
                 success: false,
                 message: "Machine ID không được để trống"
             });
         }
 
-        if (!/^[A-Z0-9_-]+$/.test(machineId))
-        {
+        if (!/^[A-Z0-9_-]+$/.test(machineId)) {
             return res.status(400).json({
                 success: false,
                 message: "Machine ID không hợp lệ"
@@ -119,8 +117,7 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
         // ==============================
         // Kiểm tra Version
         // ==============================
-        if (!version)
-        {
+        if (!version) {
             return res.status(400).json({
                 success: false,
                 message: "Phiên bản firmware không được để trống"
@@ -130,8 +127,7 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
         // ==============================
         // Kiểm tra file
         // ==============================
-        if (!req.file)
-        {
+        if (!req.file) {
             return res.status(400).json({
                 success: false,
                 message: "Chưa chọn firmware.bin"
@@ -198,8 +194,7 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
             firmwareUrl: firmwareUrl
         });
     }
-    catch (error)
-    {
+    catch (error) {
         console.error("Update error:", error);
         console.error(error.stack);
 
@@ -207,8 +202,7 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
         if (
             savedFilePath &&
             fs.existsSync(savedFilePath)
-        )
-        {
+        ) {
             fs.unlinkSync(savedFilePath);
         }
 
@@ -225,8 +219,7 @@ app.post("/api/update", upload.single("firmware"), async (req, res) => {
 app.use((error, req, res, next) => {
     console.error("Server error:", error);
 
-    if (error instanceof multer.MulterError)
-    {
+    if (error instanceof multer.MulterError) {
         return res.status(400).json({
             success: false,
             message: `Lỗi upload: ${error.message}`

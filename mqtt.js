@@ -28,8 +28,7 @@ client.on("connect", () => {
         "wash/+/ota_status",
         { qos: 0 },
         (error) => {
-            if (error)
-            {
+            if (error) {
                 console.error(
                     "OTA status subscribe failed:",
                     error.message
@@ -46,16 +45,14 @@ client.on("connect", () => {
 });
 
 client.on("message", (topic, payloadBuffer) => {
-    try
-    {
+    try {
         const topicParts = topic.split("/");
 
         if (
             topicParts.length !== 3 ||
             topicParts[0] !== "wash" ||
             topicParts[2] !== "ota_status"
-        )
-        {
+        ) {
             return;
         }
 
@@ -70,7 +67,14 @@ client.on("message", (topic, payloadBuffer) => {
             status: payload.status || "unknown",
             version: payload.version || "",
             message: payload.message || "",
-            updatedAt: new Date().toISOString()
+
+            progress:
+                Number.isFinite(Number(payload.progress))
+                    ? Number(payload.progress)
+                    : null,
+
+            updatedAt: new Date().toISOString(),
+            lastSeenMs: Date.now()
         };
 
         console.log("==================================");
@@ -78,8 +82,7 @@ client.on("message", (topic, payloadBuffer) => {
         console.log(otaStates[machineId]);
         console.log("==================================");
     }
-    catch (error)
-    {
+    catch (error) {
         console.error(
             "Invalid OTA status payload:",
             error.message
@@ -107,11 +110,9 @@ function publishOTA(
     machineId,
     firmwareUrl,
     version = ""
-)
-{
+) {
     return new Promise((resolve, reject) => {
-        if (!client.connected)
-        {
+        if (!client.connected) {
             reject(
                 new Error("MQTT chưa kết nối")
             );
@@ -142,8 +143,7 @@ function publishOTA(
             payload,
             { qos: 1 },
             (error) => {
-                if (error)
-                {
+                if (error) {
                     reject(error);
                     return;
                 }
@@ -163,9 +163,31 @@ function publishOTA(
 
 function getOTAStatus(machineId)
 {
-    return otaStates[
-        String(machineId).trim().toUpperCase()
-    ] || null;
+    const normalizedId =
+        String(machineId)
+            .trim()
+            .toUpperCase();
+
+    const state = otaStates[normalizedId];
+
+    if (!state)
+    {
+        return null;
+    }
+
+    const OFFLINE_TIMEOUT_MS = 15000;
+
+    const ageMs =
+        Date.now() - state.lastSeenMs;
+
+    const isOnline =
+        ageMs <= OFFLINE_TIMEOUT_MS;
+
+    return {
+        ...state,
+        isOnline: isOnline,
+        ageMs: ageMs
+    };
 }
 
 module.exports = {
