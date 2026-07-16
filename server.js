@@ -7,6 +7,7 @@ const {
     publishOTA,
     getOTAStatus,
     getAllMachines,
+    getMachineData,
     deleteMachine
 } = require("./mqtt");
 
@@ -60,7 +61,49 @@ app.get("/api/machines", (req, res) => {
         machines
     });
 });
+app.get("/api/machine/:machineId", (req, res) => {
+    res.set({
+        "Cache-Control":
+            "no-store, no-cache, must-revalidate, private",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    });
 
+    const machineId =
+        String(req.params.machineId || "")
+            .trim()
+            .toUpperCase();
+
+    const data =
+        getMachineData(machineId);
+
+    if (!data)
+    {
+        return res.json({
+            success: true,
+            found: false,
+            machineId: machineId,
+            online: false,
+            message:
+                "Chưa nhận được dữ liệu từ thiết bị"
+        });
+    }
+
+    const ageMs =
+        Date.now() -
+        new Date(data.updatedAt).getTime();
+
+    const online =
+        ageMs <= 15000;
+
+    return res.json({
+        success: true,
+        found: true,
+        online: online,
+        ageMs: ageMs,
+        ...data
+    });
+});
 app.delete(
     "/api/machines/:machineId",
     async (req, res) => {

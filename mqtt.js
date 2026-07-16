@@ -7,7 +7,7 @@ console.log("Starting MQTT connection...");
 console.log("MQTT URL:", config.mqtt.host);
 
 const otaStates = {};
-
+const machineData = {};
 const client = mqtt.connect(config.mqtt.host, {
     clientId: `OTA_SERVER_${Math.random().toString(16).slice(2, 10)}`,
     reconnectPeriod: 3000,
@@ -28,31 +28,138 @@ client.on("connect", () => {
         console.log("Subscribed: wash/+/ota_status");
     });
 });
+client.subscribe(
+    "wash/+/data",
+    { qos: 0 },
+    (error) => {
+        if (error)
+        {
+            console.error(
+                "Machine data subscribe failed:",
+                error.message
+            );
 
+            return;
+        }
+
+        console.log("Subscribed: wash/+/data");
+    }
+);
 client.on("message", (topic, payloadBuffer) => {
-    try {
+    try
+    {
         const topicParts = topic.split("/");
-        if (topicParts.length !== 3 || topicParts[0] !== "wash" || topicParts[2] !== "ota_status") return;
 
-        const machineId = topicParts[1].toUpperCase();
-        const payload = JSON.parse(payloadBuffer.toString());
+        if (
+            topicParts.length !== 3 ||
+            topicParts[0] !== "wash"
+        )
+        {
+            return;
+        }
 
-        otaStates[machineId] = {
-            machineId,
-            status: payload.status || "unknown",
-            version: payload.version || "",
-            message: payload.message || "",
-            progress: Number.isFinite(Number(payload.progress)) ? Number(payload.progress) : null,
-            updatedAt: new Date().toISOString(),
-            lastSeenMs: Date.now()
-        };
+        const machineId =
+            topicParts[1].toUpperCase();
 
-        console.log("==================================");
-        console.log("OTA STATUS RECEIVED");
-        console.log(otaStates[machineId]);
-        console.log("==================================");
-    } catch (error) {
-        console.error("Invalid OTA status payload:", error.message);
+        const messageType =
+            topicParts[2];
+
+        const payload =
+            JSON.parse(payloadBuffer.toString());
+
+        // =====================================
+        // TRẠNG THÁI OTA
+        // wash/<MachineID>/ota_status
+        // =====================================
+        if (messageType === "ota_status")
+        {
+            otaStates[machineId] = {
+                machineId: machineId,
+                status: payload.status || "unknown",
+                version: payload.version || "",
+                message: payload.message || "",
+                progress:
+                    Number.isFinite(Number(payload.progress))
+                        ? Number(payload.progress)
+                        : null,
+                updatedAt: new Date().toISOString()
+            };
+
+            console.log("==================================");
+            console.log("OTA STATUS RECEIVED");
+            console.log(otaStates[machineId]);
+            console.log("==================================");
+
+            return;
+        }
+
+        // =====================================
+        // DỮ LIỆU DASHBOARD
+        // wash/<MachineID>/data
+        // =====================================
+        if (messageType === "data")
+        {
+            machineData[machineId] = {
+                machineId: machineId,
+
+                firmware:
+                    String(payload.firmware || ""),
+
+                currentWeight:
+                    Number(payload.currentWeight ?? payload.weight ?? 0),
+
+                lastPetWeight:
+                    Number(payload.lastPetWeight ?? 0),
+
+                toiletCountToday:
+                    Number(
+                        payload.toiletCountToday ??
+                        payload.toiletCount ??
+                        0
+                    ),
+
+                temperature:
+                    Number(payload.temperature ?? 0),
+
+                mode:
+                    Number(payload.mode ?? 0),
+
+                error:
+                    Number(payload.error ?? 0),
+
+                wifiRssi:
+                    Number(payload.wifiRssi ?? 0),
+
+                uptime:
+                    Number(payload.uptime ?? 0),
+
+                systemLock:
+                    Boolean(payload.systemLock),
+
+                stopWash:
+                    Boolean(payload.stopWash),
+
+                faultLock:
+                    Boolean(payload.faultLock),
+
+                updatedAt:
+                    new Date().toISOString()
+            };
+
+            console.log("==================================");
+            console.log("MACHINE DATA RECEIVED");
+            console.log(machineData[machineId]);
+            console.log("==================================");
+
+            return;
+        }
+    }
+    catch (error)
+    {
+        console.error(
+            "Invalid MQTT payload:",
+            error.message
+        );
     }
 });
 
@@ -168,9 +275,18 @@ function deleteMachine(machineId)
         );
     });
 }
+function getMachineData(machineId)
+{
+    return machineData[
+        String(machineId)
+            .trim()
+            .toUpperCase()
+    ] || null;
+}
 module.exports = {
     publishOTA,
     getOTAStatus,
     getAllMachines,
+    getMachineData,
     deleteMachine
 };
