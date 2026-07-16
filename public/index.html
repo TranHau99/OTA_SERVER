@@ -978,7 +978,7 @@ function renderMachineTable(){
                         ${badge.text}
                     </span>
                 </td>
-                <td>${escapeHtml(machine.message || machine.status || "—")}</td>
+                <td>     ${escapeHtml(         !isMachineOnline(machine)             ? "Thiết bị đang offline"             : (                 machine.message ||                 machine.status ||                 "Thiết bị đang online"             )     )} </td>
                 <td>${escapeHtml(formatLastSeen(machine.updatedAt))}</td>
                 <td>
                     <div class="action-group">
@@ -1042,8 +1042,18 @@ function renderSelectedMachine(){
 
     detailMachineId.textContent = machine.machineId;
     detailVersion.textContent = machine.version || "Chưa xác định";
+    if (!isMachineOnline(machine))
+{
     detailOtaStatus.textContent =
-        machine.message || machine.status || "—";
+        "Thiết bị đang offline";
+}
+else
+{
+    detailOtaStatus.textContent =
+        machine.message ||
+        machine.status ||
+        "Thiết bị đang online";
+}
     detailLastSeen.textContent = formatLastSeen(machine.updatedAt);
     detailTopic.textContent =
         "wash/" + machine.machineId + "/ota";
