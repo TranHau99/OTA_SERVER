@@ -639,8 +639,12 @@ input[type="file"]::file-selector-button{
                         type="text"
                         placeholder="Tìm Machine ID..."
                     >
-                    <button id="refreshButton" class="small-btn" type="button">
-                        Làm mới
+                    <button
+                         id="refreshButton"
+                         class="small-btn"
+                         type="button"
+                    >
+                        🔍 SCAN THIẾT BỊ
                     </button>
                 </div>
             </div>
@@ -1467,10 +1471,59 @@ otaForm.addEventListener("submit",async event => {
 });
 
 searchInput.addEventListener("input",renderMachineTable);
-refreshButton.addEventListener("click",refreshMachines);
+refreshButton.addEventListener(
+    "click",
+    async () => {
+        refreshButton.disabled = true;
+        refreshButton.textContent = "ĐANG SCAN...";
 
-refreshMachines();
-setInterval(refreshMachines,5000);
+        machineTableBody.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    <div class="empty-state">
+                        Đang quét các thiết bị đã gửi trạng thái MQTT...
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        try
+        {
+            await refreshMachines();
+        }
+        finally
+        {
+            refreshButton.disabled = false;
+            refreshButton.textContent = "🔍 SCAN THIẾT BỊ";
+        }
+    }
+);
+
+function showWaitingForScan()
+{
+    machines = [];
+    selectedMachineId = "";
+
+    totalCount.textContent = "0";
+    onlineCount.textContent = "0";
+    offlineCount.textContent = "0";
+    updatingCount.textContent = "0";
+
+    machineTableBody.innerHTML = `
+        <tr>
+            <td colspan="6">
+                <div class="empty-state">
+                    Chưa quét thiết bị.<br>
+                    Nhấn nút SCAN THIẾT BỊ để tải danh sách máy.
+                </div>
+            </td>
+        </tr>
+    `;
+
+    renderSelectedMachine();
+}
+
+showWaitingForScan();
 </script>
 </body>
 </html>
