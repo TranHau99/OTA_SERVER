@@ -372,6 +372,26 @@
       display: block;
     }
 
+    .machine-dashboard.dashboard-collapsed .dashboard-body {
+      display: none;
+    }
+
+    .dashboard-toggle {
+      min-width: 130px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--text);
+      background: #26364b;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .dashboard-toggle:hover {
+      filter: brightness(1.12);
+    }
+
     .dashboard-header-actions {
       display: flex;
       align-items: center;
@@ -982,8 +1002,8 @@
                 Chưa chọn
               </span>
 
-              <button id="hideDashboardButton" type="button" class="btn secondary">
-                ẨN DASHBOARD
+              <button id="toggleDashboardButton" type="button" class="dashboard-toggle">
+                ▲ Thu gọn
               </button>
 
             </div>
@@ -1430,9 +1450,12 @@
     const dashboardLiveBadge = $("dashboardLiveBadge");
     const dashboardMessage = $("dashboardMessage");
 
+    const toggleDashboardButton =
+      $("toggleDashboardButton");
 
+    let dashboardCollapsed = false;
     const hideDashboardButton =
-    $("hideDashboardButton");
+      $("hideDashboardButton");
 
     let allMachines = [];
     let displayedMachines = [];
@@ -2222,7 +2245,14 @@
       renderDetail();
 
       showDashboard();
+          dashboardCollapsed = false;
 
+    machineDashboard.classList.remove(
+        "dashboard-collapsed"
+    );
+
+    toggleDashboardButton.textContent =
+        "▲ Thu gọn";
       dashboardTitle.textContent =
         selectedMachineId;
 
@@ -2827,13 +2857,32 @@
     /* =========================================
        INITIAL STATE
     ========================================= */
+    toggleDashboardButton.onclick = () => {
+      dashboardCollapsed =
+        !dashboardCollapsed;
 
+      if (dashboardCollapsed) {
+        machineDashboard.classList.add(
+          "dashboard-collapsed"
+        );
+
+        toggleDashboardButton.textContent =
+          "▼ Hiện Dashboard";
+      }
+      else {
+        machineDashboard.classList.remove(
+          "dashboard-collapsed"
+        );
+
+        toggleDashboardButton.textContent =
+          "▲ Thu gọn";
+      }
+    };
     applyMode("none");
     hideDashboardButton.onclick =
-    () =>
-    {
+      () => {
         hideDashboard();
-    };
+      };
   </script>
 
 </body>
