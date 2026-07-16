@@ -118,12 +118,59 @@ function getAllMachines() {
         .sort((a, b) => a.isOnline !== b.isOnline ? (a.isOnline ? -1 : 1) : a.machineId.localeCompare(b.machineId));
 }
 
-function deleteMachine(machineId) {
-    const normalizedId = String(machineId || "").trim().toUpperCase();
-    if (!normalizedId || !otaStates[normalizedId]) return false;
-    delete otaStates[normalizedId];
-    console.log("MACHINE REMOVED:", normalizedId);
-    return true;
-}
+function deleteMachine(machineId)
+{
+    return new Promise((resolve, reject) => {
+        const normalizedId =
+            String(machineId || "")
+                .trim()
+                .toUpperCase();
 
-module.exports = { publishOTA, getOTAStatus, getAllMachines, deleteMachine };
+        if (!normalizedId)
+        {
+            reject(
+                new Error("Machine ID không hợp lệ")
+            );
+
+            return;
+        }
+
+        const topic =
+            `wash/${normalizedId}/ota_status`;
+
+        // Payload rỗng + retain=true:
+        // xóa retained message cũ trên MQTT broker
+        client.publish(
+            topic,
+            Buffer.alloc(0),
+            {
+                qos: 1,
+                retain: true
+            },
+            (error) => {
+                if (error)
+                {
+                    reject(error);
+                    return;
+                }
+
+                // Xóa khỏi RAM của server
+                delete otaStates[normalizedId];
+
+                console.log("==================================");
+                console.log("MACHINE REMOVED");
+                console.log("Machine:", normalizedId);
+                console.log("Retained MQTT cleared:", topic);
+                console.log("==================================");
+
+                resolve(true);
+            }
+        );
+    });
+}
+module.exports = {
+    publishOTA,
+    getOTAStatus,
+    getAllMachines,
+    deleteMachine
+};
