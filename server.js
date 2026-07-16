@@ -3,7 +3,12 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const config = require("./config");
-const { publishOTA, getOTAStatus, getAllMachines, deleteMachine } = require("./mqtt");
+const {
+    publishOTA,
+    getOTAStatus,
+    getAllMachines,
+    deleteMachine
+} = require("./mqtt");
 
 const app = express();
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -56,12 +61,56 @@ app.get("/api/machines", (req, res) => {
     });
 });
 
-app.delete("/api/machines/:machineId", (req, res) => {
-    const machineId = String(req.params.machineId || "").trim().toUpperCase();
-    if (!machineId) return res.status(400).json({ success: false, message: "Machine ID không hợp lệ" });
-    if (!deleteMachine(machineId)) return res.status(404).json({ success: false, message: "Không tìm thấy thiết bị" });
-    return res.json({ success: true, machineId, message: `Đã xóa thiết bị ${machineId}` });
-});
+app.delete(
+    "/api/machines/:machineId",
+    async (req, res) => {
+        try
+        {
+            const machineId =
+                String(
+                    req.params.machineId || ""
+                )
+                    .trim()
+                    .toUpperCase();
+
+            if (!machineId)
+            {
+                return res
+                    .status(400)
+                    .json({
+                        success: false,
+                        message:
+                            "Machine ID không hợp lệ"
+                    });
+            }
+
+            await deleteMachine(machineId);
+
+            return res.json({
+                success: true,
+                machineId: machineId,
+                message:
+                    `Đã xóa thiết bị ${machineId} và retained MQTT`
+            });
+        }
+        catch (error)
+        {
+            console.error(
+                "Delete machine error:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    success: false,
+                    message:
+                        error.message ||
+                        "Không thể xóa thiết bị"
+                });
+        }
+    }
+);
 
 app.post("/api/update", upload.single("firmware"), async (req, res) => {
     let savedFilePath = "";
